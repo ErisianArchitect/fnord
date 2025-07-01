@@ -1,0 +1,331 @@
+use super::size::*;
+use std::ops::{
+    Add, Sub,
+    Mul, Div, Rem,
+    Neg,
+    Index, IndexMut,
+};
+
+/// Represents a position in 2D space.
+#[repr(C)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd)]
+pub struct Pos {
+    pub x: f32,
+    pub y: f32,
+}
+
+#[inline]
+pub const fn pos(x: f32, y: f32) -> Pos {
+    Pos { x, y }
+}
+
+impl Pos {
+    pub const ZERO:        Self = Self::new(0.0, 0.0);
+    pub const NEG_HALF:    Self = Self::new(-0.5, -0.5);
+    pub const HALF:        Self = Self::new(0.5, 0.5);
+    pub const NEG_ONE:     Self = Self::new(-1.0, -1.0);
+    pub const ONE:         Self = Self::new(1.0, 1.0);
+    pub const NEG_X:       Self = Self::new(-1.0, 0.0);
+    pub const X:           Self = Self::new(1.0, 0.0);
+    pub const NEG_Y:       Self = Self::new(0.0, -1.0);
+    pub const Y:           Self = Self::new(0.0, 1.0);
+    pub const NEG_X_POS_Y: Self = Self::new(-1.0, 1.0);
+    pub const POS_X_NEG_Y: Self = Self::new(1.0, -1.0);
+
+    #[inline]
+    pub const fn new(x: f32, y: f32) -> Self {
+        Self { x, y }
+    }
+
+    #[inline]
+    pub const fn splat(splat: f32) -> Self {
+        Self { x: splat, y: splat }
+    }
+
+    #[inline]
+    pub const fn length_squared(self) -> f32 {
+        self.x * self.x + self.y * self.y
+    }
+
+    #[inline]
+    pub fn length(self) -> f32 {
+        self.length_squared().sqrt()
+    }
+
+    #[inline]
+    pub const fn distance_squared(self, other: Pos) -> f32 {
+        other.sub_dims(self.x, self.y).length_squared()
+    }
+
+    #[inline]
+    pub fn distance(self, other: Pos) -> f32 {
+        self.distance_squared(other).sqrt()
+    }
+
+    #[inline]
+    pub const fn add_dims(self, x: f32, y: f32) -> Self {
+        Self::new(self.x + x, self.y + y)
+    }
+
+    #[inline]
+    pub const fn sub_dims(self, x: f32, y: f32) -> Self {
+        Self::new(self.x - x, self.y - y)
+    }
+
+    #[inline]
+    pub const fn mul_dims(self, x: f32, y: f32) -> Self {
+        Self::new(self.x * x, self.y * y)
+    }
+
+    #[inline]
+    pub const fn div_dims(self, x: f32, y: f32) -> Self {
+        Self::new(self.x / x, self.y / y)
+    }
+
+    #[inline]
+    pub const fn rem_dims(self, x: f32, y: f32) -> Self {
+        Self::new(self.x % x, self.y % y)
+    }
+
+    #[inline]
+    pub const fn negate(self) -> Self {
+        Self::new(-self.x, -self.y)
+    }
+
+    #[inline]
+    pub const fn to_tuple(self) -> (f32, f32) {
+        (self.x, self.y)
+    }
+
+    #[inline]
+    pub const fn from_tuple((x, y): (f32, f32)) -> Self {
+        Self::new(x, y)
+    }
+
+    #[inline]
+    pub const fn to_array(self) -> [f32; 2] {
+        [self.x, self.y]
+    }
+
+    #[inline]
+    pub const fn from_array([x, y]: [f32; 2]) -> Self {
+        Self::new(x, y)
+    }
+
+    #[inline]
+    pub const fn as_slice<'a>(&'a self) -> &'a [f32] {
+        unsafe {
+            std::slice::from_raw_parts(self as *const Self as *const f32, 2)
+        }
+    }
+
+    #[inline]
+    pub const fn as_mut_slice<'a>(&'a mut self) -> &'a mut [f32] {
+        unsafe {
+            std::slice::from_raw_parts_mut(self as *mut Self as *mut f32, 2)
+        }
+    }
+}
+
+impl Index<usize> for Pos {
+    type Output = f32;
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            _ => panic!("Index out of bounds."),
+        }
+    }
+}
+
+impl IndexMut<usize> for Pos {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match index {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            _ => panic!("Index out of bounds."),
+        }
+    }
+}
+
+impl Neg for Pos {
+    type Output = Pos;
+    fn neg(self) -> Self::Output {
+        self.negate()
+    }
+}
+
+impl Add<Pos> for Pos {
+    type Output = Pos;
+    fn add(self, rhs: Pos) -> Self::Output {
+        self.add_dims(rhs.x, rhs.y)
+    }
+}
+
+impl Add<Size> for Pos {
+    type Output = Pos;
+    fn add(self, rhs: Size) -> Self::Output {
+        self.add_dims(rhs.width, rhs.height)
+    }
+}
+
+impl Add<(f32, f32)> for Pos {
+    type Output = Pos;
+    fn add(self, rhs: (f32, f32)) -> Self::Output {
+        self.add_dims(rhs.0, rhs.1)
+    }
+}
+
+impl Add<[f32; 2]> for Pos {
+    type Output = Pos;
+    fn add(self, rhs: [f32; 2]) -> Self::Output {
+        self.add_dims(rhs[0], rhs[1])
+    }
+}
+
+impl Add<f32> for Pos {
+    type Output = Pos;
+    fn add(self, rhs: f32) -> Self::Output {
+        self.add_dims(rhs, rhs)
+    }
+}
+
+impl Sub<Pos> for Pos {
+    type Output = Pos;
+    fn sub(self, rhs: Pos) -> Self::Output {
+        self.sub_dims(rhs.x, rhs.y)
+    }
+}
+
+impl Sub<Size> for Pos {
+    type Output = Pos;
+    fn sub(self, rhs: Size) -> Self::Output {
+        self.sub_dims(rhs.width, rhs.height)
+    }
+}
+
+impl Sub<(f32, f32)> for Pos {
+    type Output = Pos;
+    fn sub(self, (x, y): (f32, f32)) -> Self::Output {
+        self.sub_dims(x, y)
+    }
+}
+
+impl Sub<[f32; 2]> for Pos {
+    type Output = Pos;
+    fn sub(self, [x, y]: [f32; 2]) -> Self::Output {
+        self.sub_dims(x, y)
+    }
+}
+
+impl Sub<f32> for Pos {
+    type Output = Pos;
+    fn sub(self, rhs: f32) -> Self::Output {
+        self.sub_dims(rhs, rhs)
+    }
+}
+
+impl Mul<Pos> for Pos {
+    type Output = Pos;
+    fn mul(self, rhs: Pos) -> Self::Output {
+        self.mul_dims(rhs.x, rhs.y)
+    }
+}
+
+impl Mul<Size> for Pos {
+    type Output = Pos;
+    fn mul(self, rhs: Size) -> Self::Output {
+        self.mul_dims(rhs.width, rhs.height)
+    }
+}
+
+impl Mul<(f32, f32)> for Pos {
+    type Output = Pos;
+    fn mul(self, (x, y): (f32, f32)) -> Self::Output {
+        self.mul_dims(x, y)
+    }
+}
+
+impl Mul<[f32; 2]> for Pos {
+    type Output = Pos;
+    fn mul(self, [x, y]: [f32; 2]) -> Self::Output {
+        self.mul_dims(x, y)
+    }
+}
+
+impl Mul<f32> for Pos {
+    type Output = Pos;
+    fn mul(self, rhs: f32) -> Self::Output {
+        self.mul_dims(rhs, rhs)
+    }
+}
+
+impl Div<Pos> for Pos {
+    type Output = Pos;
+    fn div(self, rhs: Pos) -> Self::Output {
+        self.div_dims(rhs.x, rhs.y)
+    }
+}
+
+impl Div<Size> for Pos {
+    type Output = Pos;
+    fn div(self, rhs: Size) -> Self::Output {
+        self.div_dims(rhs.width, rhs.height)
+    }
+}
+
+impl Div<(f32, f32)> for Pos {
+    type Output = Pos;
+    fn div(self, (x, y): (f32, f32)) -> Self::Output {
+        self.div_dims(x, y)
+    }
+}
+
+impl Div<[f32; 2]> for Pos {
+    type Output = Pos;
+    fn div(self, [x, y]: [f32; 2]) -> Self::Output {
+        self.div_dims(x, y)
+    }
+}
+
+impl Div<f32> for Pos {
+    type Output = Pos;
+    fn div(self, rhs: f32) -> Self::Output {
+        self.div_dims(rhs, rhs)
+    }
+}
+
+impl Rem<Pos> for Pos {
+    type Output = Pos;
+    fn rem(self, rhs: Pos) -> Self::Output {
+        self.rem_dims(rhs.x, rhs.y)
+    }
+}
+
+impl Rem<Size> for Pos {
+    type Output = Pos;
+    fn rem(self, rhs: Size) -> Self::Output {
+        self.rem_dims(rhs.width, rhs.height)
+    }
+}
+
+impl Rem<(f32, f32)> for Pos {
+    type Output = Pos;
+    fn rem(self, (x, y): (f32, f32)) -> Self::Output {
+        self.rem_dims(x, y)
+    }
+}
+
+impl Rem<[f32; 2]> for Pos {
+    type Output = Pos;
+    fn rem(self, [x, y]: [f32; 2]) -> Self::Output {
+        self.rem_dims(x, y)
+    }
+}
+
+impl Rem<f32> for Pos {
+    type Output = Pos;
+    fn rem(self, rhs: f32) -> Self::Output {
+        self.rem_dims(rhs, rhs)
+    }
+}
