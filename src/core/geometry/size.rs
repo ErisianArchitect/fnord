@@ -74,6 +74,13 @@ impl Size {
         }
     }
 
+    #[inline]
+    pub const fn as_mut_array<'a>(&'a mut self) -> &'a mut [f32] {
+        unsafe {
+            std::slice::from_raw_parts_mut(self as *mut Size as *mut f32, 2)
+        }
+    }
+
     /// Tests if the [Size] is square (both sides are equal).
     /// 
     /// This method may be unreliable due to floating point arithemetic imprecision. Try `is_square_fuzzy` if you're dealing with precision issues.
