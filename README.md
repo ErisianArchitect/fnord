@@ -1,0 +1,1 @@
+This crate is a work in progress. It is planned to be a GUI library, likely retained mode.
