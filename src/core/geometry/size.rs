@@ -171,24 +171,28 @@ impl Size {
 }
 
 impl From<(f32, f32)> for Size {
+    #[inline]
     fn from(value: (f32, f32)) -> Self {
         Self::from_tuple(value)
     }
 }
 
 impl Into<(f32, f32)> for Size {
+    #[inline]
     fn into(self) -> (f32, f32) {
         self.to_tuple()
     }
 }
 
 impl From<[f32; 2]> for Size {
+    #[inline]
     fn from(value: [f32; 2]) -> Self {
         Self::from_array(value)
     }
 }
 
 impl Into<[f32; 2]> for Size {
+    #[inline]
     fn into(self) -> [f32; 2] {
         self.to_array()
     }
@@ -196,6 +200,7 @@ impl Into<[f32; 2]> for Size {
 
 impl Index<usize> for Size {
     type Output = f32;
+    #[inline]
     fn index(&self, index: usize) -> &Self::Output {
         match index {
             0 => &self.width,
@@ -206,6 +211,7 @@ impl Index<usize> for Size {
 }
 
 impl IndexMut<usize> for Size {
+    #[inline]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         match index {
             0 => &mut self.width,
@@ -217,6 +223,7 @@ impl IndexMut<usize> for Size {
 
 impl From<f32> for Size {
     /// Converts the [f32] value into `Size::square(value)`.
+    #[inline]
     fn from(value: f32) -> Self {
         Self::square(value)
     }
@@ -224,6 +231,7 @@ impl From<f32> for Size {
 
 impl Neg for Size {
     type Output = Size;
+    #[inline]
     fn neg(self) -> Self::Output {
         self.negate()
     }
@@ -231,6 +239,7 @@ impl Neg for Size {
 
 impl Add<Size> for Size {
     type Output = Size;
+    #[inline]
     fn add(self, rhs: Size) -> Self::Output {
         self.add_dims(rhs.width, rhs.height)
     }
@@ -238,6 +247,7 @@ impl Add<Size> for Size {
 
 impl Add<(f32, f32)> for Size {
     type Output = Size;
+    #[inline]
     fn add(self, rhs: (f32, f32)) -> Self::Output {
         self.add_dims(rhs.0, rhs.1)
     }
@@ -245,6 +255,7 @@ impl Add<(f32, f32)> for Size {
 
 impl Add<[f32; 2]> for Size {
     type Output = Size;
+    #[inline]
     fn add(self, rhs: [f32; 2]) -> Self::Output {
         self.add_dims(rhs[0], rhs[1])
     }
@@ -252,6 +263,7 @@ impl Add<[f32; 2]> for Size {
 
 impl Add<f32> for Size {
     type Output = Size;
+    #[inline]
     fn add(self, rhs: f32) -> Self::Output {
         self.add_dims(rhs, rhs)
     }
@@ -259,6 +271,7 @@ impl Add<f32> for Size {
 
 impl Sub<Size> for Size {
     type Output = Size;
+    #[inline]
     fn sub(self, rhs: Size) -> Self::Output {
         self.sub_dims(rhs.width, rhs.height)
     }
@@ -266,6 +279,7 @@ impl Sub<Size> for Size {
 
 impl Sub<(f32, f32)> for Size {
     type Output = Size;
+    #[inline]
     fn sub(self, rhs: (f32, f32)) -> Self::Output {
         self.sub_dims(rhs.0, rhs.1)
     }
@@ -273,6 +287,7 @@ impl Sub<(f32, f32)> for Size {
 
 impl Sub<[f32; 2]> for Size {
     type Output = Size;
+    #[inline]
     fn sub(self, rhs: [f32; 2]) -> Self::Output {
         self.sub_dims(rhs[0], rhs[1])
     }
@@ -280,6 +295,7 @@ impl Sub<[f32; 2]> for Size {
 
 impl Sub<f32> for Size {
     type Output = Size;
+    #[inline]
     fn sub(self, rhs: f32) -> Self::Output {
         self.sub_dims(rhs, rhs)
     }
@@ -287,6 +303,7 @@ impl Sub<f32> for Size {
 
 impl Mul<Size> for Size {
     type Output = Size;
+    #[inline]
     fn mul(self, rhs: Size) -> Self::Output {
         self.mul_dims(rhs.width, rhs.height)
     }
@@ -294,6 +311,7 @@ impl Mul<Size> for Size {
 
 impl Mul<(f32, f32)> for Size {
     type Output = Size;
+    #[inline]
     fn mul(self, rhs: (f32, f32)) -> Self::Output {
         self.mul_dims(rhs.0, rhs.1)
     }
@@ -301,6 +319,7 @@ impl Mul<(f32, f32)> for Size {
 
 impl Mul<[f32; 2]> for Size {
     type Output = Size;
+    #[inline]
     fn mul(self, rhs: [f32; 2]) -> Self::Output {
         self.mul_dims(rhs[0], rhs[1])
     }
@@ -308,6 +327,7 @@ impl Mul<[f32; 2]> for Size {
 
 impl Mul<f32> for Size {
     type Output = Size;
+    #[inline]
     fn mul(self, rhs: f32) -> Self::Output {
         self.mul_dims(rhs, rhs)
     }
@@ -315,6 +335,7 @@ impl Mul<f32> for Size {
 
 impl Div<Size> for Size {
     type Output = Size;
+    #[inline]
     fn div(self, rhs: Size) -> Self::Output {
         self.div_dims(rhs.width, rhs.height)
     }
@@ -322,6 +343,7 @@ impl Div<Size> for Size {
 
 impl Div<(f32, f32)> for Size {
     type Output = Size;
+    #[inline]
     fn div(self, rhs: (f32, f32)) -> Self::Output {
         self.div_dims(rhs.0, rhs.1)
     }
@@ -329,6 +351,7 @@ impl Div<(f32, f32)> for Size {
 
 impl Div<[f32; 2]> for Size {
     type Output = Size;
+    #[inline]
     fn div(self, rhs: [f32; 2]) -> Self::Output {
         self.div_dims(rhs[0], rhs[1])
     }
@@ -336,6 +359,7 @@ impl Div<[f32; 2]> for Size {
 
 impl Div<f32> for Size {
     type Output = Size;
+    #[inline]
     fn div(self, rhs: f32) -> Self::Output {
         self.div_dims(rhs, rhs)
     }
@@ -343,6 +367,7 @@ impl Div<f32> for Size {
 
 impl Rem<Size> for Size {
     type Output = Size;
+    #[inline]
     fn rem(self, rhs: Size) -> Self::Output {
         self.rem_dims(rhs.width, rhs.height)
     }
@@ -350,6 +375,7 @@ impl Rem<Size> for Size {
 
 impl Rem<(f32, f32)> for Size {
     type Output = Size;
+    #[inline]
     fn rem(self, (x, y): (f32, f32)) -> Self::Output {
         self.rem_dims(x, y)
     }
@@ -357,6 +383,7 @@ impl Rem<(f32, f32)> for Size {
 
 impl Rem<[f32; 2]> for Size {
     type Output = Size;
+    #[inline]
     fn rem(self, [x, y]: [f32; 2]) -> Self::Output {
         self.rem_dims(x, y)
     }
@@ -364,6 +391,7 @@ impl Rem<[f32; 2]> for Size {
 
 impl Rem<f32> for Size {
     type Output = Size;
+    #[inline]
     fn rem(self, rhs: f32) -> Self::Output {
         self.rem_dims(rhs, rhs)
     }
