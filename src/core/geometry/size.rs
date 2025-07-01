@@ -1,5 +1,6 @@
 
 #[repr(C)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Size {
     pub width: f32,
     pub height: f32,
@@ -15,9 +16,237 @@ impl Size {
     pub const ONE:  Self = Self::new(1.0, 1.0);
     pub const W:    Self = Self::new(1.0, 0.0);
     pub const H:    Self = Self::new(0.0, 1.0);
-    
+
     #[inline]
     pub const fn new(width: f32, height: f32) -> Self {
         Self { width, height }
+    }
+
+    #[inline]
+    pub const fn square(side_length: f32) -> Self {
+        Self { width: side_length, height: side_length }
+    }
+
+    // This method might fail in some way.
+    #[inline]
+    pub const fn area(self) -> f32 {
+        self.width * self.height
+    }
+
+    #[inline]
+    pub const fn to_tuple(self) -> (f32, f32) {
+        (self.width, self.height)
+    }
+
+    #[inline]
+    pub const fn from_tuple(tuple: (f32, f32)) -> Self {
+        Self::new(tuple.0, tuple.1)
+    }
+
+    #[inline]
+    pub const fn to_array(self) -> [f32; 2] {
+        [self.width, self.height]
+    }
+
+    #[inline]
+    pub const fn from_array(array: [f32; 2]) -> Self {
+        Self::new(array[0], array[1])
+    }
+
+    #[inline]
+    pub const fn as_array<'a>(&'a self) -> &'a [f32] {
+        unsafe {
+            std::slice::from_raw_parts(self as *const Size as *const f32, 2)
+        }
+    }
+
+    #[inline]
+    pub const fn is_square(self) -> bool {
+        self.width == self.height
+    }
+
+    /// Determines if a size is as close to being square as `error`. This method is not reliable due to floating point weirdness.
+    /// I advise that you use an `error` value that is greater than the value you expect. For example, if you want within `0.1`, use `0.11` or `0.109` etc..
+    #[inline]
+    pub const fn is_square_fuzzy(self, error: f32) -> bool {
+        (self.width.max(self.height) - self.height.min(self.width)) <= error
+    }
+
+    #[inline]
+    pub const fn is_horizontal(self) -> bool {
+        self.width > self.height
+    }
+
+    #[inline]
+    pub const fn is_vertical(self) -> bool {
+        self.height > self.width
+    }
+
+    #[inline]
+    pub const fn swap_dims(self) -> Size {
+        Self::new(self.height, self.height)
+    }
+
+    #[inline]
+    pub const fn add_dims(self, width: f32, height: f32) -> Self {
+        Self::new(self.width + width, self.height + height)
+    }
+
+    #[inline]
+    pub const fn sub_dims(self, width: f32, height: f32) -> Self {
+        Self::new(self.width - width, self.height - height)
+    }
+
+    #[inline]
+    pub const fn mul_dims(self, width: f32, height: f32) -> Self {
+        Self::new(self.width * width, self.height * height)
+    }
+
+    #[inline]
+    pub const fn div_dims(self, width: f32, height: f32) -> Self {
+        Self::new(self.width / width, self.height / height)
+    }
+}
+
+impl From<(f32, f32)> for Size {
+    fn from(value: (f32, f32)) -> Self {
+        Self::from_tuple(value)
+    }
+}
+
+impl From<[f32; 2]> for Size {
+    fn from(value: [f32; 2]) -> Self {
+        Self::from_array(value)
+    }
+}
+
+impl From<f32> for Size {
+    /// Converts the [f32] value into `Size::square(value)`.
+    fn from(value: f32) -> Self {
+        Self::square(value)
+    }
+}
+
+impl std::ops::Add<Size> for Size {
+    type Output = Size;
+    fn add(self, rhs: Size) -> Self::Output {
+        self.add_dims(rhs.width, rhs.height)
+    }
+}
+
+impl std::ops::Add<(f32, f32)> for Size {
+    type Output = Size;
+    fn add(self, rhs: (f32, f32)) -> Self::Output {
+        self.add_dims(rhs.0, rhs.1)
+    }
+}
+
+impl std::ops::Add<[f32; 2]> for Size {
+    type Output = Size;
+    fn add(self, rhs: [f32; 2]) -> Self::Output {
+        self.add_dims(rhs[0], rhs[1])
+    }
+}
+
+impl std::ops::Add<f32> for Size {
+    type Output = Size;
+    fn add(self, rhs: f32) -> Self::Output {
+        self.add_dims(rhs, rhs)
+    }
+}
+
+impl std::ops::Sub<Size> for Size {
+    type Output = Size;
+    fn sub(self, rhs: Size) -> Self::Output {
+        self.sub_dims(rhs.width, rhs.height)
+    }
+}
+
+impl std::ops::Sub<(f32, f32)> for Size {
+    type Output = Size;
+    fn sub(self, rhs: (f32, f32)) -> Self::Output {
+        self.sub_dims(rhs.0, rhs.1)
+    }
+}
+
+impl std::ops::Sub<[f32; 2]> for Size {
+    type Output = Size;
+    fn sub(self, rhs: [f32; 2]) -> Self::Output {
+        self.sub_dims(rhs[0], rhs[1])
+    }
+}
+
+impl std::ops::Sub<f32> for Size {
+    type Output = Size;
+    fn sub(self, rhs: f32) -> Self::Output {
+        self.sub_dims(rhs, rhs)
+    }
+}
+
+impl std::ops::Mul<Size> for Size {
+    type Output = Size;
+    fn mul(self, rhs: Size) -> Self::Output {
+        self.mul_dims(rhs.width, rhs.height)
+    }
+}
+
+impl std::ops::Mul<(f32, f32)> for Size {
+    type Output = Size;
+    fn mul(self, rhs: (f32, f32)) -> Self::Output {
+        self.mul_dims(rhs.0, rhs.1)
+    }
+}
+
+impl std::ops::Mul<[f32; 2]> for Size {
+    type Output = Size;
+    fn mul(self, rhs: [f32; 2]) -> Self::Output {
+        self.mul_dims(rhs[0], rhs[1])
+    }
+}
+
+impl std::ops::Mul<f32> for Size {
+    type Output = Size;
+    fn mul(self, rhs: f32) -> Self::Output {
+        self.mul_dims(rhs, rhs)
+    }
+}
+
+impl std::ops::Div<Size> for Size {
+    type Output = Size;
+    fn div(self, rhs: Size) -> Self::Output {
+        self.div_dims(rhs.width, rhs.height)
+    }
+}
+
+impl std::ops::Div<(f32, f32)> for Size {
+    type Output = Size;
+    fn div(self, rhs: (f32, f32)) -> Self::Output {
+        self.div_dims(rhs.0, rhs.1)
+    }
+}
+
+impl std::ops::Div<[f32; 2]> for Size {
+    type Output = Size;
+    fn div(self, rhs: [f32; 2]) -> Self::Output {
+        self.div_dims(rhs[0], rhs[1])
+    }
+}
+
+impl std::ops::Div<f32> for Size {
+    type Output = Size;
+    fn div(self, rhs: f32) -> Self::Output {
+        self.div_dims(rhs, rhs)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn size_math_test() {
+        let base = Size::new(10.0, 10.0);
+        let mult = <Size as std::ops::Add<_>>::add(base, Size::new(1.0, 2.0));
+        println!("{mult:?}");
     }
 }
