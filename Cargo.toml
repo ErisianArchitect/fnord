@@ -1,6 +1,12 @@
 [package]
 name = "fnord"
-version = "0.1.0"
+description = "A GUI library. (Work in progress)"
+repository = "https://github.com/ErisianArchitect/fnord"
+readme = "README.md"
+categories = ["gui"]
+keywords = ["gui", "ui", "interface"]
+version = "0.1.0-indev"
 edition = "2024"
+license-file = "LICENSE"
 
 [dependencies]
