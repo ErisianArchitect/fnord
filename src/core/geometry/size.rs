@@ -1,3 +1,9 @@
+use std::ops::{
+    Add, Sub,
+    Mul, Div, Rem,
+    Neg,
+    Index, IndexMut,
+};
 
 /// Represents width and height dimensions.
 #[repr(C)]
@@ -22,6 +28,19 @@ impl Size {
     pub const W:    Self = Self::new(1.0, 0.0);
     /// (0.0, 1.0)
     pub const H:    Self = Self::new(0.0, 1.0);
+    // Resolutions
+    pub const VGA: Self = Self::new(640.0, 360.0);
+    pub const SD_NTSC: Self = Self::new(720.0, 480.0);
+    pub const SD_PAL: Self = Self::new(720.0, 576.0);
+    pub const HD: Self = Self::new(1280.0, 720.0);
+    pub const WXGA: Self = Self::new(1280.0, 800.0);
+    pub const FHD: Self = Self::new(1920.0, 1080.0);
+    pub const QHD: Self = Self::new(2560.0, 1440.0);
+    pub const DCI_2K: Self = Self::new(2048.0, 1080.0);
+    pub const UHD_4K: Self = Self::new(3840.0, 2160.0);
+    pub const DCI_4K: Self = Self::new(4096.0, 2160.0);
+    pub const UHD_8K: Self = Self::new(7680.0, 4320.0);
+    pub const DCI_8K: Self = Self::new(8192.0, 4320.0);
 
     /// Create a new [Size] from the given `width` and `height`.
     #[inline]
@@ -109,6 +128,11 @@ impl Size {
         self.height > self.width
     }
 
+    #[inline]
+    pub const fn negate(self) -> Self {
+        Self::new(-self.width, -self.height)
+    }
+
     /// Swaps the width and height.
     #[inline]
     pub const fn swap_dims(self) -> Size {
@@ -138,6 +162,12 @@ impl Size {
     pub const fn div_dims(self, width: f32, height: f32) -> Self {
         Self::new(self.width / width, self.height / height)
     }
+
+    /// Division remainder of `self.width` by `width` and `self.height` by `height`.
+    #[inline]
+    pub const fn rem_dims(self, width: f32, height: f32) -> Self {
+        Self::new(self.width % width, self.height % height)
+    }
 }
 
 impl From<(f32, f32)> for Size {
@@ -146,9 +176,42 @@ impl From<(f32, f32)> for Size {
     }
 }
 
+impl Into<(f32, f32)> for Size {
+    fn into(self) -> (f32, f32) {
+        self.to_tuple()
+    }
+}
+
 impl From<[f32; 2]> for Size {
     fn from(value: [f32; 2]) -> Self {
         Self::from_array(value)
+    }
+}
+
+impl Into<[f32; 2]> for Size {
+    fn into(self) -> [f32; 2] {
+        self.to_array()
+    }
+}
+
+impl Index<usize> for Size {
+    type Output = f32;
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.width,
+            1 => &self.height,
+            _ => panic!("Index out of bounds."),
+        }
+    }
+}
+
+impl IndexMut<usize> for Size {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match index {
+            0 => &mut self.width,
+            1 => &mut self.height,
+            _ => panic!("Index out of bounds."),
+        }
     }
 }
 
@@ -159,115 +222,150 @@ impl From<f32> for Size {
     }
 }
 
-impl std::ops::Add<Size> for Size {
+impl Neg for Size {
+    type Output = Size;
+    fn neg(self) -> Self::Output {
+        self.negate()
+    }
+}
+
+impl Add<Size> for Size {
     type Output = Size;
     fn add(self, rhs: Size) -> Self::Output {
         self.add_dims(rhs.width, rhs.height)
     }
 }
 
-impl std::ops::Add<(f32, f32)> for Size {
+impl Add<(f32, f32)> for Size {
     type Output = Size;
     fn add(self, rhs: (f32, f32)) -> Self::Output {
         self.add_dims(rhs.0, rhs.1)
     }
 }
 
-impl std::ops::Add<[f32; 2]> for Size {
+impl Add<[f32; 2]> for Size {
     type Output = Size;
     fn add(self, rhs: [f32; 2]) -> Self::Output {
         self.add_dims(rhs[0], rhs[1])
     }
 }
 
-impl std::ops::Add<f32> for Size {
+impl Add<f32> for Size {
     type Output = Size;
     fn add(self, rhs: f32) -> Self::Output {
         self.add_dims(rhs, rhs)
     }
 }
 
-impl std::ops::Sub<Size> for Size {
+impl Sub<Size> for Size {
     type Output = Size;
     fn sub(self, rhs: Size) -> Self::Output {
         self.sub_dims(rhs.width, rhs.height)
     }
 }
 
-impl std::ops::Sub<(f32, f32)> for Size {
+impl Sub<(f32, f32)> for Size {
     type Output = Size;
     fn sub(self, rhs: (f32, f32)) -> Self::Output {
         self.sub_dims(rhs.0, rhs.1)
     }
 }
 
-impl std::ops::Sub<[f32; 2]> for Size {
+impl Sub<[f32; 2]> for Size {
     type Output = Size;
     fn sub(self, rhs: [f32; 2]) -> Self::Output {
         self.sub_dims(rhs[0], rhs[1])
     }
 }
 
-impl std::ops::Sub<f32> for Size {
+impl Sub<f32> for Size {
     type Output = Size;
     fn sub(self, rhs: f32) -> Self::Output {
         self.sub_dims(rhs, rhs)
     }
 }
 
-impl std::ops::Mul<Size> for Size {
+impl Mul<Size> for Size {
     type Output = Size;
     fn mul(self, rhs: Size) -> Self::Output {
         self.mul_dims(rhs.width, rhs.height)
     }
 }
 
-impl std::ops::Mul<(f32, f32)> for Size {
+impl Mul<(f32, f32)> for Size {
     type Output = Size;
     fn mul(self, rhs: (f32, f32)) -> Self::Output {
         self.mul_dims(rhs.0, rhs.1)
     }
 }
 
-impl std::ops::Mul<[f32; 2]> for Size {
+impl Mul<[f32; 2]> for Size {
     type Output = Size;
     fn mul(self, rhs: [f32; 2]) -> Self::Output {
         self.mul_dims(rhs[0], rhs[1])
     }
 }
 
-impl std::ops::Mul<f32> for Size {
+impl Mul<f32> for Size {
     type Output = Size;
     fn mul(self, rhs: f32) -> Self::Output {
         self.mul_dims(rhs, rhs)
     }
 }
 
-impl std::ops::Div<Size> for Size {
+impl Div<Size> for Size {
     type Output = Size;
     fn div(self, rhs: Size) -> Self::Output {
         self.div_dims(rhs.width, rhs.height)
     }
 }
 
-impl std::ops::Div<(f32, f32)> for Size {
+impl Div<(f32, f32)> for Size {
     type Output = Size;
     fn div(self, rhs: (f32, f32)) -> Self::Output {
         self.div_dims(rhs.0, rhs.1)
     }
 }
 
-impl std::ops::Div<[f32; 2]> for Size {
+impl Div<[f32; 2]> for Size {
     type Output = Size;
     fn div(self, rhs: [f32; 2]) -> Self::Output {
         self.div_dims(rhs[0], rhs[1])
     }
 }
 
-impl std::ops::Div<f32> for Size {
+impl Div<f32> for Size {
     type Output = Size;
     fn div(self, rhs: f32) -> Self::Output {
         self.div_dims(rhs, rhs)
+    }
+}
+
+impl Rem<Size> for Size {
+    type Output = Size;
+    fn rem(self, rhs: Size) -> Self::Output {
+        self.rem_dims(rhs.width, rhs.height)
+    }
+}
+
+impl Rem<(f32, f32)> for Size {
+    type Output = Size;
+    fn rem(self, (x, y): (f32, f32)) -> Self::Output {
+        self.rem_dims(x, y)
+    }
+}
+
+impl Rem<[f32; 2]> for Size {
+    type Output = Size;
+    fn rem(self, [x, y]: [f32; 2]) -> Self::Output {
+        self.rem_dims(x, y)
+    }
+}
+
+impl Rem<f32> for Size {
+    type Output = Size;
+    fn rem(self, rhs: f32) -> Self::Output {
+        self.rem_dims(rhs, rhs)
     }
 }
 
