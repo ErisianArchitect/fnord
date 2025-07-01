@@ -66,7 +66,7 @@ impl Size {
         Self::new(x, y)
     }
 
-    /// Returns the size as a slice of [f32].
+    /// Returns the size as a slice of [f32] where `slice[0]` is width and `slice[1]` is height.
     #[inline]
     pub const fn as_slice<'a>(&'a self) -> &'a [f32] {
         unsafe {
@@ -74,6 +74,7 @@ impl Size {
         }
     }
 
+    /// Returns the size as a mutable slice of [f32] where `slice[0]` is width and `slice[1]` is height.
     #[inline]
     pub const fn as_mut_slice<'a>(&'a mut self) -> &'a mut [f32] {
         unsafe {
