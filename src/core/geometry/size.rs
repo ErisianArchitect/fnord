@@ -50,8 +50,8 @@ impl Size {
 
     /// Creates a [Size] from a tuple.
     #[inline]
-    pub const fn from_tuple(tuple: (f32, f32)) -> Self {
-        Self::new(tuple.0, tuple.1)
+    pub const fn from_tuple((x, y): (f32, f32)) -> Self {
+        Self::new(x, y)
     }
 
     /// Converts the [Size] into an array.
@@ -62,8 +62,8 @@ impl Size {
 
     /// Creates a [Size] from an array.
     #[inline]
-    pub const fn from_array(array: [f32; 2]) -> Self {
-        Self::new(array[0], array[1])
+    pub const fn from_array([x, y]: [f32; 2]) -> Self {
+        Self::new(x, y)
     }
 
     /// Returns the size as a slice of [f32].
