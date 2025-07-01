@@ -68,14 +68,14 @@ impl Size {
 
     /// Returns the size as a slice of [f32].
     #[inline]
-    pub const fn as_array<'a>(&'a self) -> &'a [f32] {
+    pub const fn as_slice<'a>(&'a self) -> &'a [f32] {
         unsafe {
             std::slice::from_raw_parts(self as *const Size as *const f32, 2)
         }
     }
 
     #[inline]
-    pub const fn as_mut_array<'a>(&'a mut self) -> &'a mut [f32] {
+    pub const fn as_mut_slice<'a>(&'a mut self) -> &'a mut [f32] {
         unsafe {
             std::slice::from_raw_parts_mut(self as *mut Size as *mut f32, 2)
         }
