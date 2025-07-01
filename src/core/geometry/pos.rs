@@ -129,6 +129,7 @@ impl Pos {
 
 impl Index<usize> for Pos {
     type Output = f32;
+    #[inline]
     fn index(&self, index: usize) -> &Self::Output {
         match index {
             0 => &self.x,
@@ -139,6 +140,7 @@ impl Index<usize> for Pos {
 }
 
 impl IndexMut<usize> for Pos {
+    #[inline]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         match index {
             0 => &mut self.x,
@@ -150,6 +152,7 @@ impl IndexMut<usize> for Pos {
 
 impl Neg for Pos {
     type Output = Pos;
+    #[inline]
     fn neg(self) -> Self::Output {
         self.negate()
     }
@@ -157,6 +160,7 @@ impl Neg for Pos {
 
 impl Add<Pos> for Pos {
     type Output = Pos;
+    #[inline]
     fn add(self, rhs: Pos) -> Self::Output {
         self.add_dims(rhs.x, rhs.y)
     }
@@ -164,6 +168,7 @@ impl Add<Pos> for Pos {
 
 impl Add<Size> for Pos {
     type Output = Pos;
+    #[inline]
     fn add(self, rhs: Size) -> Self::Output {
         self.add_dims(rhs.width, rhs.height)
     }
@@ -171,6 +176,7 @@ impl Add<Size> for Pos {
 
 impl Add<(f32, f32)> for Pos {
     type Output = Pos;
+    #[inline]
     fn add(self, rhs: (f32, f32)) -> Self::Output {
         self.add_dims(rhs.0, rhs.1)
     }
@@ -178,6 +184,7 @@ impl Add<(f32, f32)> for Pos {
 
 impl Add<[f32; 2]> for Pos {
     type Output = Pos;
+    #[inline]
     fn add(self, rhs: [f32; 2]) -> Self::Output {
         self.add_dims(rhs[0], rhs[1])
     }
@@ -185,6 +192,7 @@ impl Add<[f32; 2]> for Pos {
 
 impl Add<f32> for Pos {
     type Output = Pos;
+    #[inline]
     fn add(self, rhs: f32) -> Self::Output {
         self.add_dims(rhs, rhs)
     }
@@ -192,6 +200,7 @@ impl Add<f32> for Pos {
 
 impl Sub<Pos> for Pos {
     type Output = Pos;
+    #[inline]
     fn sub(self, rhs: Pos) -> Self::Output {
         self.sub_dims(rhs.x, rhs.y)
     }
@@ -199,6 +208,7 @@ impl Sub<Pos> for Pos {
 
 impl Sub<Size> for Pos {
     type Output = Pos;
+    #[inline]
     fn sub(self, rhs: Size) -> Self::Output {
         self.sub_dims(rhs.width, rhs.height)
     }
@@ -206,6 +216,7 @@ impl Sub<Size> for Pos {
 
 impl Sub<(f32, f32)> for Pos {
     type Output = Pos;
+    #[inline]
     fn sub(self, (x, y): (f32, f32)) -> Self::Output {
         self.sub_dims(x, y)
     }
@@ -213,6 +224,7 @@ impl Sub<(f32, f32)> for Pos {
 
 impl Sub<[f32; 2]> for Pos {
     type Output = Pos;
+    #[inline]
     fn sub(self, [x, y]: [f32; 2]) -> Self::Output {
         self.sub_dims(x, y)
     }
@@ -220,6 +232,7 @@ impl Sub<[f32; 2]> for Pos {
 
 impl Sub<f32> for Pos {
     type Output = Pos;
+    #[inline]
     fn sub(self, rhs: f32) -> Self::Output {
         self.sub_dims(rhs, rhs)
     }
@@ -227,6 +240,7 @@ impl Sub<f32> for Pos {
 
 impl Mul<Pos> for Pos {
     type Output = Pos;
+    #[inline]
     fn mul(self, rhs: Pos) -> Self::Output {
         self.mul_dims(rhs.x, rhs.y)
     }
@@ -234,6 +248,7 @@ impl Mul<Pos> for Pos {
 
 impl Mul<Size> for Pos {
     type Output = Pos;
+    #[inline]
     fn mul(self, rhs: Size) -> Self::Output {
         self.mul_dims(rhs.width, rhs.height)
     }
@@ -241,6 +256,7 @@ impl Mul<Size> for Pos {
 
 impl Mul<(f32, f32)> for Pos {
     type Output = Pos;
+    #[inline]
     fn mul(self, (x, y): (f32, f32)) -> Self::Output {
         self.mul_dims(x, y)
     }
@@ -248,6 +264,7 @@ impl Mul<(f32, f32)> for Pos {
 
 impl Mul<[f32; 2]> for Pos {
     type Output = Pos;
+    #[inline]
     fn mul(self, [x, y]: [f32; 2]) -> Self::Output {
         self.mul_dims(x, y)
     }
@@ -255,6 +272,7 @@ impl Mul<[f32; 2]> for Pos {
 
 impl Mul<f32> for Pos {
     type Output = Pos;
+    #[inline]
     fn mul(self, rhs: f32) -> Self::Output {
         self.mul_dims(rhs, rhs)
     }
@@ -262,6 +280,7 @@ impl Mul<f32> for Pos {
 
 impl Div<Pos> for Pos {
     type Output = Pos;
+    #[inline]
     fn div(self, rhs: Pos) -> Self::Output {
         self.div_dims(rhs.x, rhs.y)
     }
@@ -269,6 +288,7 @@ impl Div<Pos> for Pos {
 
 impl Div<Size> for Pos {
     type Output = Pos;
+    #[inline]
     fn div(self, rhs: Size) -> Self::Output {
         self.div_dims(rhs.width, rhs.height)
     }
@@ -276,6 +296,7 @@ impl Div<Size> for Pos {
 
 impl Div<(f32, f32)> for Pos {
     type Output = Pos;
+    #[inline]
     fn div(self, (x, y): (f32, f32)) -> Self::Output {
         self.div_dims(x, y)
     }
@@ -283,6 +304,7 @@ impl Div<(f32, f32)> for Pos {
 
 impl Div<[f32; 2]> for Pos {
     type Output = Pos;
+    #[inline]
     fn div(self, [x, y]: [f32; 2]) -> Self::Output {
         self.div_dims(x, y)
     }
@@ -290,6 +312,7 @@ impl Div<[f32; 2]> for Pos {
 
 impl Div<f32> for Pos {
     type Output = Pos;
+    #[inline]
     fn div(self, rhs: f32) -> Self::Output {
         self.div_dims(rhs, rhs)
     }
@@ -297,6 +320,7 @@ impl Div<f32> for Pos {
 
 impl Rem<Pos> for Pos {
     type Output = Pos;
+    #[inline]
     fn rem(self, rhs: Pos) -> Self::Output {
         self.rem_dims(rhs.x, rhs.y)
     }
@@ -304,6 +328,7 @@ impl Rem<Pos> for Pos {
 
 impl Rem<Size> for Pos {
     type Output = Pos;
+    #[inline]
     fn rem(self, rhs: Size) -> Self::Output {
         self.rem_dims(rhs.width, rhs.height)
     }
@@ -311,6 +336,7 @@ impl Rem<Size> for Pos {
 
 impl Rem<(f32, f32)> for Pos {
     type Output = Pos;
+    #[inline]
     fn rem(self, (x, y): (f32, f32)) -> Self::Output {
         self.rem_dims(x, y)
     }
@@ -318,6 +344,7 @@ impl Rem<(f32, f32)> for Pos {
 
 impl Rem<[f32; 2]> for Pos {
     type Output = Pos;
+    #[inline]
     fn rem(self, [x, y]: [f32; 2]) -> Self::Output {
         self.rem_dims(x, y)
     }
@@ -325,6 +352,7 @@ impl Rem<[f32; 2]> for Pos {
 
 impl Rem<f32> for Pos {
     type Output = Pos;
+    #[inline]
     fn rem(self, rhs: f32) -> Self::Output {
         self.rem_dims(rhs, rhs)
     }
