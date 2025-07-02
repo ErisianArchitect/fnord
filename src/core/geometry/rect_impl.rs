@@ -156,6 +156,14 @@ impl Rect {
         self.max = self.min.add_dims(size.width, size.height);
     }
 
+    #[inline]
+    pub const fn resize(self, size: Size) -> Self {
+        Self {
+            min: self.min,
+            max: self.max.add_dims(size.width, size.height),
+        }
+    }
+
     // Dimensions
     #[inline]
     pub const fn width(self) -> f32 {
