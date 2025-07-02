@@ -163,6 +163,22 @@ impl Size {
         Self::new(self.width * scalar, self.height * scalar)
     }
 
+    #[inline]
+    pub const fn min_dim(self) -> f32 {
+        self.width.min(self.height)
+    }
+
+    #[inline]
+    pub const fn max_dim(self) -> f32 {
+        self.width.max(self.height)
+    }
+
+    #[inline]
+    pub const fn inner_square(self) -> Self {
+        let side_length = self.min_dim();
+        Self::new(side_length, side_length)
+    }
+
     /// Swaps the width and height.
     #[inline]
     pub const fn swap_dims(self) -> Size {
