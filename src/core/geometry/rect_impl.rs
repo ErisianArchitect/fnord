@@ -742,12 +742,12 @@ impl Rect {
         let mar = msize.aspect_ratio();
         let rar = size.aspect_ratio();
         let square_size = size.min_dim();
-        let min_dim = if mar >= rar {
-            msize.height
-        } else {
+        let scale_by = if mar >= rar {
             msize.width
+        } else {
+            msize.height
         };
-        let scalar = min_dim / square_size;
+        let scalar = scale_by / square_size;
         let new_size = size.scale(scalar);
         Rect::centered(self.center(), new_size)
     }
