@@ -2,6 +2,9 @@ use std::{borrow::{Borrow, BorrowMut}, ops::{
     Add, Deref, DerefMut, Div, Index, IndexMut, Mul, Neg, Rem, Sub
 }};
 use crate::core::geometry::dims_impl::Dims;
+use crate::core::math::{
+    lerp,
+};
 
 use super::util_impl::*;
 
@@ -213,6 +216,14 @@ impl Size {
     #[inline]
     pub const fn rem_dims(self, width: f32, height: f32) -> Self {
         Self::new(self.width % width, self.height % height)
+    }
+
+    #[inline]
+    pub const fn lerp(self, other: Size, t: f32) -> Self {
+        Self::new(
+            lerp(self.width, other.width, t),
+            lerp(self.height, other.height, t),
+        )
     }
 }
 
