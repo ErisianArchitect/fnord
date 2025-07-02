@@ -134,6 +134,24 @@ impl Pos {
             std::slice::from_raw_parts_mut(self as *mut Self as *mut f32, 2)
         }
     }
+
+    /// Returns the min of both components.
+    #[inline]
+    pub const fn min(self, rhs: Self) -> Self {
+        Self::new(
+            self.x.min(rhs.x),
+            self.y.min(rhs.y),
+        )
+    }
+
+    /// Returns the max of both components.
+    #[inline]
+    pub const fn max(self, rhs: Self) -> Self {
+        Self::new(
+            self.x.max(rhs.x),
+            self.y.max(rhs.y),
+        )
+    }
 }
 
 impl Deref for Pos {
