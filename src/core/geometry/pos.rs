@@ -1,10 +1,14 @@
 use super::size::*;
+use super::dims::*;
 use std::ops::{
     Add, Sub,
     Mul, Div, Rem,
     Neg,
     Index, IndexMut,
+    Deref, DerefMut,
 };
+
+use std::borrow::{Borrow, BorrowMut};
 
 /// Represents a position in 2D space.
 #[repr(C)]
@@ -129,6 +133,53 @@ impl Pos {
         unsafe {
             std::slice::from_raw_parts_mut(self as *mut Self as *mut f32, 2)
         }
+    }
+}
+
+impl Deref for Pos {
+    type Target = Dims;
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        unsafe {
+            &*(self as *const Self as *const Dims)
+        }
+    }
+}
+
+impl DerefMut for Pos {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe {
+            &mut *(self as *mut Self as *mut Dims)
+        }
+    }
+}
+
+impl AsRef<Dims> for Pos {
+    #[inline]
+    fn as_ref(&self) -> &Dims {
+        &*self
+    }
+}
+
+impl AsMut<Dims> for Pos {
+    #[inline]
+    fn as_mut(&mut self) -> &mut Dims {
+        &mut *self
+    }
+}
+
+impl Borrow<Dims> for Pos {
+    #[inline]
+    fn borrow(&self) -> &Dims {
+        &*self
+    }
+}
+
+impl BorrowMut<Dims> for Pos {
+    #[inline]
+    fn borrow_mut(&mut self) -> &mut Dims {
+        &mut *self
     }
 }
 
