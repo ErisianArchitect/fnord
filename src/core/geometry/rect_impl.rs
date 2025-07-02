@@ -742,9 +742,9 @@ impl Rect {
         let mar = msize.aspect_ratio();
         let square_size = size.min_dim();
         let scale_by = if mar >= 1.0 {
-            msize.width
-        } else {
             msize.height
+        } else {
+            msize.width
         };
         let scalar = scale_by / square_size;
         let new_size = size.scale(scalar);
