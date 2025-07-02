@@ -10,3 +10,5 @@ pub mod rect;
 pub use rect::*;
 pub mod anchor;
 pub use anchor::*;
+pub mod placement;
+pub use placement::*;
