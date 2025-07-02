@@ -1,4 +1,5 @@
 use super::Margin;
+use crate::core::math::lerp;
 
 #[repr(C)]
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
@@ -125,6 +126,21 @@ impl Padding {
         unsafe {
             std::mem::transmute(margin)
         }
+    }
+
+    #[inline]
+    pub const fn lerp(self, other: Self, t: f32) -> Self {
+        Self {
+            left: lerp(self.left as f32, other.left as f32, t) as i8,
+            top: lerp(self.top as f32, other.top as f32, t) as i8,
+            right: lerp(self.right as f32, other.right as f32, t) as i8,
+            bottom: lerp(self.bottom as f32, other.bottom as f32, t) as i8,
+        }
+    }
+
+    #[inline]
+    pub const fn clamped_lerp(self, other: Self, t: f32) -> Self {
+        self.lerp(other, t.clamp(0.0, 1.0))
     }
 }
 
