@@ -2,7 +2,6 @@ use crate::core::geometry::util::half;
 
 use super::pos::*;
 use super::size::*;
-use super::grid::*;
 use super::margin::*;
 use super::anchor::Anchor;
 use super::placement::Placement;
