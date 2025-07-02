@@ -8,3 +8,4 @@ pub mod placement;
 pub mod margin;
 pub mod util;
 pub mod prelude;
+pub mod dims;
