@@ -50,6 +50,12 @@ impl Pos {
     }
 
     #[inline]
+    pub fn from_angle(angle: f32) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self { x: cos, y: sin }
+    }
+
+    #[inline]
     pub const fn length_squared(self) -> f32 {
         self.x * self.x + self.y * self.y
     }
@@ -67,6 +73,24 @@ impl Pos {
     #[inline]
     pub fn distance(self, other: Pos) -> f32 {
         self.distance_squared(other).sqrt()
+    }
+
+    #[inline]
+    pub fn angle(self) -> f32 {
+        <f32>::atan2(self.y, self.x)
+    }
+
+    #[inline]
+    pub fn perp(self) -> Self {
+        Self::new(-self.y, self.x)
+    }
+
+    #[inline]
+    pub fn rotate(self, rhs: Self) -> Self {
+        Self {
+            x: self.x * rhs.x - self.y * rhs.y,
+            y: self.y * rhs.x + self.x * rhs.y,
+        }
     }
 
     #[inline]
@@ -157,6 +181,19 @@ impl Pos {
     }
 
     #[inline]
+    pub const fn lerp(self, other: Self, t: f32) -> Self {
+        Self::new(
+            lerp(self.x, other.x, t),
+            lerp(self.y, other.y, t),
+        )
+    }
+
+    #[inline]
+    pub const fn clamped_lerp(self, other: Self, t: f32) -> Self {
+        self.lerp(other, t.clamp(0.0, 1.0))
+    }
+
+    #[inline]
     pub const fn clamp(self, min: Pos, max: Pos) -> Self {
         Self::new(
             self.x.clamp(min.x, max.x),
@@ -178,16 +215,77 @@ impl Pos {
     }
 
     #[inline]
-    pub const fn lerp(self, other: Self, t: f32) -> Self {
-        Self::new(
-            lerp(self.x, other.x, t),
-            lerp(self.y, other.y, t),
-        )
+    pub fn clamp_length(self, min: f32, max: f32) -> Self {
+        let length = self.length();
+        if length >= min && length <= max {
+            return self;
+        }
+        let clamped_length = length.clamp(min, max);
+        let mult = clamped_length / length;
+        Self::new(self.x * mult, self.y * mult)
     }
 
     #[inline]
-    pub const fn clamped_lerp(self, other: Self, t: f32) -> Self {
-        self.lerp(other, t.clamp(0.0, 1.0))
+    pub fn clamp_length_min(self, min: f32) -> Self {
+        let length = self.length();
+        if length >= min {
+            return self;
+        }
+        let clamped_length = length.max(min);
+        let mult = clamped_length / length;
+        Self::new(self.x * mult, self.y * mult)
+    }
+
+    #[inline]
+    pub fn clamp_length_max(self, max: f32) -> Self {
+        let length = self.length();
+        if length <= max {
+            return self;
+        }
+        let clamped_length = length.min(max);
+        let mult = clamped_length / length;
+        Self::new(self.x * mult, self.y * mult)
+    }
+
+    #[inline]
+    pub const fn cross(self, other: Self) -> f32 {
+        self.x * other.y - self.y * other.x
+    }
+
+    #[inline]
+    pub const fn dot(self, other: Self) -> f32 {
+        self.x * other.x + self.y * other.y
+    }
+
+    #[inline]
+    pub fn normalize(self) -> Self {
+        let length = self.length();
+        Self::new(self.x / length, self.y / length)
+    }
+
+    #[inline]
+    pub const fn abs(self) -> Self {
+        Self::new(self.x.abs(), self.y.abs())
+    }
+
+    #[inline]
+    pub fn floor(self) -> Self {
+        Self::new(self.x.floor(), self.y.floor())
+    }
+
+    #[inline]
+    pub fn ceil(self) -> Self {
+        Self::new(self.x.ceil(), self.y.ceil())
+    }
+
+    #[inline]
+    pub fn round(self) -> Self {
+        Self::new(self.x.round(), self.y.round())
+    }
+
+    #[inline]
+    pub fn fract(self) -> Self {
+        Self::new(self.x.fract(), self.y.fract())
     }
 }
 

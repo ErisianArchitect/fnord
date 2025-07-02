@@ -1,4 +1,5 @@
 use crate::core::geometry::util_impl::half;
+use crate::core::math::lerp;
 
 use super::pos_impl::*;
 use super::size_impl::*;
@@ -356,12 +357,41 @@ impl Rect {
         self.max = pos(center.x + half_size.width, center.y + half_size.height);
     }
 
+    #[inline]
+    pub const fn place_anchor(&mut self, anchor: Anchor, pos: Pos) {
+        match anchor {
+            Anchor::LeftTop => self.set_left_top(pos),
+            Anchor::RightTop => self.set_right_top(pos),
+            Anchor::LeftBottom => self.set_left_bottom(pos),
+            Anchor::RightBottom => self.set_right_bottom(pos),
+            Anchor::LeftCenter => self.set_left_center(pos),
+            Anchor::TopCenter => self.set_top_center(pos),
+            Anchor::RightCenter => self.set_right_center(pos),
+            Anchor::BottomCenter => self.set_bottom_center(pos),
+            Anchor::Center => self.set_center(pos),
+        }
+    }
+
     /// Takes a uv coordinate (0.0 to 1.0 for x and y) and returns the position at that UV coordinate on the [Rect].
     #[inline]
     pub const fn uv_pos(self, uv: Pos) -> Pos {
-        let x = self.min.x + (self.max.x - self.min.x) * uv.x;
-        let y = self.min.y + (self.max.y - self.min.y) * uv.y;
-        Pos::new(x, y)
+        Pos::new(
+            lerp(self.min.x, self.max.x, uv.x),
+            lerp(self.min.y, self.max.y, uv.y),
+        )
+    }
+
+    #[inline]
+    pub const fn set_uv_pos(&mut self, uv: Pos, pos: Pos) {
+        let uv_pos = self.uv_pos(uv);
+        let diff = Pos::new(
+            pos.x - uv_pos.x,
+            pos.y - uv_pos.y,
+        );
+        self.min.x += diff.x;
+        self.min.y += diff.y;
+        self.max.x += diff.x;
+        self.max.y += diff.y;
     }
 
     #[inline]
@@ -493,6 +523,13 @@ impl Rect {
             min: Pos::new(self.min.x - margin.left as f32, self.min.y - margin.top as f32),
             max: Pos::new(self.max.x + margin.right as f32, self.max.y + margin.bottom as f32),
         }
+    }
+
+    #[inline]
+    pub const fn add_margin_anchored(self, margin: Margin, anchor: Anchor) -> Self {
+        let pivot = self.anchor_pos(anchor);
+        let new_size = self.size().add_margin(margin);
+        Self::from_anchored_pivot(anchor, pivot, new_size)
     }
 
     /// Remove [Padding] from a [Rect].
@@ -787,6 +824,11 @@ impl Rect {
         }
     }
 
+    #[inline]
+    pub const fn handle_rect(self, anchor: Anchor, size: Size) -> Self {
+        Self::centered(self.anchor_pos(anchor), size)
+    }
+
     /// Recturns the smallest [Rect] that contains both [Rect]s.
     pub const fn combine(self, other: Rect) -> Self {
         let min_x = self.min.x.min(other.min.x);
@@ -823,7 +865,7 @@ impl Rect {
     pub const fn scale_middle(self, size: Size) -> Self {
         let msize = self.size();
         let mar = msize.aspect_ratio();
-        let square_size = size.min_dim();
+        let square_size = size.min_dims();
         let scale_by = if mar >= 1.0 {
             msize.height
         } else {
@@ -856,6 +898,11 @@ impl Rect {
             self.min.lerp(other.min, t),
             self.max.lerp(other.max, t),
         )
+    }
+
+    #[inline]
+    pub const fn clamped_lerp(self, other: Rect, t: f32) -> Self {
+        self.lerp(other, t.clamp(0.0, 1.0))
     }
 }
 

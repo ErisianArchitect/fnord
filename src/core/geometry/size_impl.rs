@@ -2,6 +2,8 @@ use std::{borrow::{Borrow, BorrowMut}, ops::{
     Add, Deref, DerefMut, Div, Index, IndexMut, Mul, Neg, Rem, Sub
 }};
 use crate::core::geometry::dims_impl::Dims;
+use super::margin_impl::Margin;
+use super::padding_impl::Padding;
 use crate::core::math::{
     lerp,
 };
@@ -167,18 +169,18 @@ impl Size {
     }
 
     #[inline]
-    pub const fn min_dim(self) -> f32 {
+    pub const fn min_dims(self) -> f32 {
         self.width.min(self.height)
     }
 
     #[inline]
-    pub const fn max_dim(self) -> f32 {
+    pub const fn max_dims(self) -> f32 {
         self.width.max(self.height)
     }
 
     #[inline]
     pub const fn inner_square(self) -> Self {
-        let side_length = self.min_dim();
+        let side_length = self.min_dims();
         Self::new(side_length, side_length)
     }
 
@@ -223,6 +225,43 @@ impl Size {
         Self::new(
             lerp(self.width, other.width, t),
             lerp(self.height, other.height, t),
+        )
+    }
+
+    #[inline]
+    pub const fn clamped_lerp(self, other: Size, t: f32) -> Self {
+        self.lerp(other, t.clamp(0.0, 1.0))
+    }
+
+    #[inline]
+    pub const fn add_margin(self, margin: Margin) -> Self {
+        Self::new(
+            self.width + margin.x() as f32,
+            self.height + margin.y() as f32,
+        )
+    }
+
+    #[inline]
+    pub const fn sub_margin(self, margin: Margin) -> Self {
+        Self::new(
+            self.width - margin.x() as f32,
+            self.height - margin.y() as f32,
+        )
+    }
+
+    #[inline]
+    pub const fn add_padding(self, padding: Padding) -> Self {
+        Self::new(
+            self.width - padding.x() as f32,
+            self.height - padding.y() as f32,
+        )
+    }
+
+    #[inline]
+    pub const fn sub_padding(self, padding: Padding) -> Self {
+        Self::new(
+            self.width + padding.x() as f32,
+            self.height + padding.y() as f32,
         )
     }
 }
@@ -387,6 +426,22 @@ impl Add<f32> for Size {
     }
 }
 
+impl Add<Margin> for Size {
+    type Output = Size;
+    #[inline]
+    fn add(self, rhs: Margin) -> Self::Output {
+        self.add_margin(rhs)
+    }
+}
+
+impl Add<Padding> for Size {
+    type Output = Size;
+    #[inline]
+    fn add(self, rhs: Padding) -> Self::Output {
+        self.add_padding(rhs)
+    }
+}
+
 impl Sub<Size> for Size {
     type Output = Size;
     #[inline]
@@ -416,6 +471,22 @@ impl Sub<f32> for Size {
     #[inline]
     fn sub(self, rhs: f32) -> Self::Output {
         self.sub_dims(rhs, rhs)
+    }
+}
+
+impl Sub<Margin> for Size {
+    type Output = Size;
+    #[inline]
+    fn sub(self, rhs: Margin) -> Self::Output {
+        self.sub_margin(rhs)
+    }
+}
+
+impl Sub<Padding> for Size {
+    type Output = Size;
+    #[inline]
+    fn sub(self, rhs: Padding) -> Self::Output {
+        self.sub_padding(rhs)
     }
 }
 
