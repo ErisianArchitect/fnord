@@ -740,9 +740,8 @@ impl Rect {
     pub const fn scale_middle(self, size: Size) -> Self {
         let msize = self.size();
         let mar = msize.aspect_ratio();
-        let rar = size.aspect_ratio();
         let square_size = size.min_dim();
-        let scale_by = if mar >= rar {
+        let scale_by = if mar >= 1.0 {
             msize.width
         } else {
             msize.height
