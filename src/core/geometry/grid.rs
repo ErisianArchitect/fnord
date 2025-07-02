@@ -38,4 +38,54 @@ impl Grid {
         let half = size * 0.5;
         Self::new(offset.sub_dims(half, half), Size::square(size))
     }
+
+    #[inline]
+    pub fn snap(self, pos: Pos) -> Pos {
+        let offset_pos = pos.sub_dims(self.offset.x, self.offset.y);
+        let offset_pos_rem = offset_pos.rem_euclid_dims(self.cell_size.width, self.cell_size.height);
+        let snapped_offset_pos = offset_pos.sub_dims(offset_pos_rem.x, offset_pos_rem.y);
+        snapped_offset_pos.add_dims(self.offset.x, self.offset.y)
+    }
+
+    #[inline]
+    pub fn snap_left_top(self, pos: Pos) -> Pos {
+        self.snap(pos)
+    }
+
+    #[inline]
+    pub fn snap_right_top(self, pos: Pos) -> Pos {
+        let offset_pos = Pos::new(pos.x + self.cell_size.width, pos.y);
+        self.snap(offset_pos)
+    }
+
+    #[inline]
+    pub fn snap_left_bottom(self, pos: Pos) -> Pos {
+        let offset_pos = Pos::new(pos.x, pos.y + self.cell_size.height);
+        self.snap(offset_pos)
+    }
+
+    #[inline]
+    pub fn snap_right_bottom(self, pos: Pos) -> Pos {
+        let offset_pos = Pos::new(pos.x + self.cell_size.width, pos.y + self.cell_size.height);
+        self.snap(offset_pos)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn snap_test() {
+        let grid = Grid::new(Pos::NEG_HALF, Size::ONE);
+        let snap_me = Pos::new(4.3, 2.1);
+        let left_top = grid.snap_left_top(snap_me);
+        let right_top = grid.snap_right_top(snap_me);
+        let left_bottom = grid.snap_left_bottom(snap_me);
+        let right_bottom = grid.snap_right_bottom(snap_me);
+        println!("{left_top:?}");
+        println!("{right_top:?}");
+        println!("{left_bottom:?}");
+        println!("{right_bottom:?}");
+    }
 }
