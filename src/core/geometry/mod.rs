@@ -6,3 +6,7 @@ pub mod pos;
 pub use pos::*;
 pub mod grid;
 pub use grid::*;
+pub mod rect;
+pub use rect::*;
+pub mod anchor;
+pub use anchor::*;
