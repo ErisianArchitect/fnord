@@ -715,4 +715,25 @@ impl Rect {
             max: Pos::new(max_x, max_y),
         }
     }
+
+    #[inline]
+    pub const fn aspect_ratio(self) -> f32 {
+        self.width() / self.height()
+    }
+
+    /// Returns a rect inside of `self` that fits perfectly in the center
+    /// by scaling `size`.
+    pub const fn scale_inside(self, size: Size) -> Self {
+        // determine which scaling method must be used.
+        let msize = self.size();
+        let mar = msize.aspect_ratio();
+        let rar = size.aspect_ratio();
+        let scalar = if mar >= rar {
+            msize.width / size.width
+        } else {
+            msize.height / size.height
+        };
+        let new_size = size.scale(scalar);
+        Rect::centered(self.center(), new_size)
+    }
 }
