@@ -4,6 +4,7 @@ use std::ops::{
     Neg,
     Index, IndexMut,
 };
+use super::util::*;
 
 /// Represents width and height dimensions.
 #[repr(C)]
@@ -59,6 +60,21 @@ impl Size {
     #[inline]
     pub const fn area(self) -> f32 {
         self.width * self.height
+    }
+
+    #[inline]
+    pub const fn half(self) -> Self {
+        Self::new(half(self.width), half(self.height))
+    }
+
+    #[inline]
+    pub const fn half_width(self) -> f32 {
+        half(self.width)
+    }
+
+    #[inline]
+    pub const fn half_height(self) -> f32 {
+        half(self.height)
     }
 
     /// Converts the [Size] into a tuple.
@@ -126,6 +142,11 @@ impl Size {
     #[inline]
     pub const fn is_vertical(self) -> bool {
         self.height > self.width
+    }
+
+    #[inline]
+    pub const fn is_positive(self) -> bool {
+        self.width >= 0.0 && self.height >= 0.0
     }
 
     #[inline]
