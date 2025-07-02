@@ -1,7 +1,7 @@
-use super::rect::Rect;
+use super::rect_impl::Rect;
 
-use super::size::*;
-use super::pos::*;
+use super::size_impl::*;
+use super::pos_impl::*;
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq)]

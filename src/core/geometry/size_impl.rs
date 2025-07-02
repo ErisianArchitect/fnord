@@ -1,9 +1,9 @@
 use std::{borrow::{Borrow, BorrowMut}, ops::{
     Add, Deref, DerefMut, Div, Index, IndexMut, Mul, Neg, Rem, Sub
 }};
-use crate::core::geometry::dims::Dims;
+use crate::core::geometry::dims_impl::Dims;
 
-use super::util::*;
+use super::util_impl::*;
 
 /// Represents width and height dimensions.
 #[repr(C)]

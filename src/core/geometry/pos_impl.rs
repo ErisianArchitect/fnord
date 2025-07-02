@@ -1,5 +1,5 @@
-use super::size::*;
-use super::dims::*;
+use super::size_impl::*;
+use super::dims_impl::*;
 use std::ops::{
     Add, Sub,
     Mul, Div, Rem,

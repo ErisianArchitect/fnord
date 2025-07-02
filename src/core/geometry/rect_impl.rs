@@ -1,10 +1,10 @@
-use crate::core::geometry::util::half;
+use crate::core::geometry::util_impl::half;
 
-use super::pos::*;
-use super::size::*;
-use super::margin::*;
-use super::anchor::Anchor;
-use super::placement::Placement;
+use super::pos_impl::*;
+use super::size_impl::*;
+use super::margin_impl::*;
+use super::anchor_impl::Anchor;
+use super::placement_impl::Placement;
 
 #[repr(C)]
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
