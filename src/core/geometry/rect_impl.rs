@@ -3,6 +3,7 @@ use crate::core::geometry::util_impl::half;
 use super::pos_impl::*;
 use super::size_impl::*;
 use super::margin_impl::*;
+use super::padding_impl::*;
 use super::anchor_impl::Anchor;
 use super::placement_impl::Placement;
 
@@ -23,6 +24,9 @@ pub const fn rect(x: f32, y: f32, width: f32, height: f32) -> Rect {
 }
 
 impl Rect {
+    pub const ZERO: Self = Self::from_min_max(Pos::ZERO, Pos::ZERO);
+    pub const ONE: Self = Self::from_min_max(Pos::ZERO, Pos::ONE);
+
     #[inline]
     pub const fn new(x: f32, y: f32, width: f32, height: f32) -> Self {
         debug_assert!(width >= 0.0 && height >= 0.0);
@@ -298,7 +302,7 @@ impl Rect {
 
     #[inline]
     pub const fn top_center(self) -> Pos {
-        let center_x = self.min.x + (self.max.x - self.max.y) * 0.5;
+        let center_x = self.min.x + (self.max.x - self.max.x) * 0.5;
         Pos::new(center_x, self.min.y)
     }
 
@@ -373,10 +377,57 @@ impl Rect {
     }
 
     #[inline]
+    pub const fn intersect(self, other: Rect) -> Option<Rect> {
+        if !self.intersects(&other) {
+            return None;
+        }
+        let left = self.min.x.max(other.min.x);
+        let top = self.min.y.max(other.min.y);
+        let right = self.max.x.min(other.max.x);
+        let bottom = self.max.y.min(other.max.y);
+        Some(Rect {
+            min: pos(left, top),
+            max: pos(right, bottom),
+        })
+    }
+
+    #[inline]
     pub const fn translate(self, offset: Pos) -> Self {
         Self {
             min: Pos::new(self.min.x + offset.x, self.min.y + offset.y),
             max: Pos::new(self.max.x + offset.x, self.max.y + offset.y),
+        }
+    }
+
+    #[inline]
+    pub const fn add_offset(self, offset: Pos) -> Self {
+        Self {
+            min: Pos::new(self.min.x + offset.x, self.min.y + offset.y),
+            max: Pos::new(self.max.x + offset.x, self.max.y + offset.y),
+        }
+    }
+
+    #[inline]
+    pub const fn sub_offset(self, offset: Pos) -> Self {
+        Self {
+            min: Pos::new(self.min.x - offset.x, self.min.y - offset.y),
+            max: Pos::new(self.max.x - offset.x, self.max.y - offset.y),
+        }
+    }
+
+    #[inline]
+    pub const fn add_size(self, size: Size) -> Self {
+        Self {
+            min: self.min,
+            max: self.max.add_dims(size.width, size.height),
+        }
+    }
+
+    #[inline]
+    pub const fn sub_size(self, size: Size) -> Self {
+        Self {
+            min: self.min,
+            max: self.max.sub_dims(size.width, size.height),
         }
     }
 
@@ -396,7 +447,7 @@ impl Rect {
     }
 
     #[inline]
-    pub const fn shrink(self, shrink: f32) -> Self {
+    pub const fn deflate(self, shrink: f32) -> Self {
         Self {
             min: Pos::new(self.min.x + shrink, self.min.y + shrink),
             max: Pos::new(self.max.x - shrink, self.max.y - shrink),
@@ -404,7 +455,7 @@ impl Rect {
     }
 
     #[inline]
-    pub const fn shrink2(self, x: f32, y: f32) -> Self {
+    pub const fn deflate2(self, x: f32, y: f32) -> Self {
         Self {
             min: Pos::new(self.min.x + x, self.min.y + y),
             max: Pos::new(self.max.x - x, self.max.y - y),
@@ -412,7 +463,7 @@ impl Rect {
     }
 
     #[inline]
-    pub const fn expand(self, expand: f32) -> Self {
+    pub const fn inflate(self, expand: f32) -> Self {
         Self {
             min: Pos::new(self.min.x - expand, self.min.y - expand),
             max: Pos::new(self.max.x + expand, self.max.y + expand),
@@ -420,48 +471,80 @@ impl Rect {
     }
 
     #[inline]
-    pub const fn expand2(self, x: f32, y: f32) -> Self {
+    pub const fn inflate2(self, x: f32, y: f32) -> Self {
         Self {
             min: Pos::new(self.min.x - x, self.min.y - y),
             max: Pos::new(self.max.x + x, self.max.y + y),
         }
     }
 
-    /// Add a [Margin] to a [Rect].
+    /// Add a [Padding] to a [Rect].
     #[inline]
-    pub const fn add_margin(self, margin: Margin) -> Self {
+    pub const fn add_padding(self, padding: Padding) -> Self {
         Self {
-            min: Pos::new(self.min.x + margin.left as f32, self.min.y + margin.top as f32),
-            max: Pos::new(self.max.x - margin.right as f32, self.max.y - margin.bottom as f32),
+            min: Pos::new(self.min.x + padding.left as f32, self.min.y + padding.top as f32),
+            max: Pos::new(self.max.x - padding.right as f32, self.max.y - padding.bottom as f32),
         }
     }
 
-    /// Remove a [Margin] from a [Rect].
-    /// This is the inverse of `add_margin`.
     #[inline]
-    pub const fn sub_margin(self, margin: Margin) -> Self {
+    pub const fn add_margin(self, margin: Margin) -> Self {
         Self {
             min: Pos::new(self.min.x - margin.left as f32, self.min.y - margin.top as f32),
             max: Pos::new(self.max.x + margin.right as f32, self.max.y + margin.bottom as f32),
         }
     }
 
-    /// Applies a [Margin] in-place, mutating the [Rect].
+    /// Remove [Padding] from a [Rect].
+    /// This is the inverse of `add_padding`.
     #[inline]
-    pub const fn apply_margin(&mut self, margin: Margin) {
-        self.min.x += margin.left as f32;
-        self.min.y += margin.top as f32;
-        self.max.x -= margin.right as f32;
-        self.max.y -= margin.bottom as f32;
+    pub const fn sub_padding(self, padding: Padding) -> Self {
+        Self {
+            min: Pos::new(self.min.x - padding.left as f32, self.min.y - padding.top as f32),
+            max: Pos::new(self.max.x + padding.right as f32, self.max.y + padding.bottom as f32),
+        }
     }
 
-    /// Removes a [Margin] in-place, mutating the [Rect].
     #[inline]
-    pub const fn remove_margin(&mut self, margin: Margin) {
+    pub const fn sub_margin(self, margin: Margin) -> Self {
+        Self {
+            min: Pos::new(self.min.x + margin.left as f32, self.min.y + margin.top as f32),
+            max: Pos::new(self.max.x - margin.right as f32, self.max.y - margin.bottom as f32),
+        }
+    }
+
+    /// Applies [Padding] in-place, mutating the [Rect].
+    #[inline]
+    pub const fn apply_padding(&mut self, padding: Padding) {
+        self.min.x += padding.left as f32;
+        self.min.y += padding.top as f32;
+        self.max.x -= padding.right as f32;
+        self.max.y -= padding.bottom as f32;
+    }
+
+    #[inline]
+    pub const fn apply_margin(&mut self, margin: Margin) {
         self.min.x -= margin.left as f32;
         self.min.y -= margin.top as f32;
         self.max.x += margin.right as f32;
         self.max.y += margin.bottom as f32;
+    }
+
+    /// Removes [Padding] in-place, mutating the [Rect].
+    #[inline]
+    pub const fn remove_padding(&mut self, padding: Padding) {
+        self.min.x -= padding.left as f32;
+        self.min.y -= padding.top as f32;
+        self.max.x += padding.right as f32;
+        self.max.y += padding.bottom as f32;
+    }
+
+    #[inline]
+    pub const fn remove_margin(&mut self, margin: Margin) {
+        self.min.x += margin.left as f32;
+        self.min.y += margin.top as f32;
+        self.max.x -= margin.right as f32;
+        self.max.y -= margin.bottom as f32;
     }
 
     /// This will return (`left`, `right`).
@@ -765,5 +848,45 @@ impl Rect {
         };
         let new_size = size.scale(scalar);
         Rect::centered(self.center(), new_size)
+    }
+
+    #[inline]
+    pub const fn lerp(self, other: Rect, t: f32) -> Self {
+        Self::from_min_max(
+            self.min.lerp(other.min, t),
+            self.max.lerp(other.max, t),
+        )
+    }
+}
+
+impl std::ops::Add<Margin> for Rect {
+    type Output = Rect;
+    #[inline]
+    fn add(self, rhs: Margin) -> Self::Output {
+        self.add_margin(rhs)
+    }
+}
+
+impl std::ops::Sub<Margin> for Rect {
+    type Output = Rect;
+    #[inline]
+    fn sub(self, rhs: Margin) -> Self::Output {
+        self.sub_margin(rhs)
+    }
+}
+
+impl std::ops::Add<Padding> for Rect {
+    type Output = Rect;
+    #[inline]
+    fn add(self, rhs: Padding) -> Self::Output {
+        self.add_padding(rhs)
+    }
+}
+
+impl std::ops::Sub<Padding> for Rect {
+    type Output = Rect;
+    #[inline]
+    fn sub(self, rhs: Padding) -> Self::Output {
+        self.sub_padding(rhs)
     }
 }
