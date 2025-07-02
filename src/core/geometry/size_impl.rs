@@ -144,6 +144,11 @@ impl Size {
     }
 
     #[inline]
+    pub const fn aspect_ratio(self) -> f32 {
+        self.width / self.height
+    }
+
+    #[inline]
     pub const fn is_positive(self) -> bool {
         self.width >= 0.0 && self.height >= 0.0
     }
@@ -151,6 +156,11 @@ impl Size {
     #[inline]
     pub const fn negate(self) -> Self {
         Self::new(-self.width, -self.height)
+    }
+
+    #[inline]
+    pub const fn scale(self, scalar: f32) -> Self {
+        Self::new(self.width * scalar, self.height * scalar)
     }
 
     /// Swaps the width and height.
