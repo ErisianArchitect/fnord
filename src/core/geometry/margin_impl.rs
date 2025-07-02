@@ -1,3 +1,4 @@
+use super::Padding;
 
 #[repr(C)]
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
@@ -73,6 +74,16 @@ impl Margin {
     }
 
     #[inline]
+    pub const fn x(self) -> i16 {
+        self.left as i16 + self.right as i16
+    }
+
+    #[inline]
+    pub const fn y(self) -> i16 {
+        self.top as i16 + self.bottom as i16
+    }
+
+    #[inline]
     pub const fn to_marginf(self) -> Marginf {
         Marginf {
             left: self.left as f32,
@@ -100,6 +111,27 @@ impl Margin {
             right: self.right - rhs.right,
             bottom: self.bottom - rhs.bottom,
         }
+    }
+
+    #[inline]
+    pub const fn to_padding(self) -> Padding {
+        unsafe {
+            std::mem::transmute(self)
+        }
+    }
+
+    #[inline]
+    pub const fn from_padding(padding: Padding) -> Self {
+        unsafe {
+            std::mem::transmute(padding)
+        }
+    }
+}
+
+impl From<Padding> for Margin {
+    #[inline]
+    fn from(value: Padding) -> Self {
+        Self::from_padding(value)
     }
 }
 
