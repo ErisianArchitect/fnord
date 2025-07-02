@@ -1,3 +1,6 @@
+use crate::core::math::{
+    lerp,
+};
 use super::size_impl::*;
 use super::dims_impl::*;
 use std::ops::{
@@ -151,6 +154,40 @@ impl Pos {
             self.x.max(rhs.x),
             self.y.max(rhs.y),
         )
+    }
+
+    #[inline]
+    pub const fn clamp(self, min: Pos, max: Pos) -> Self {
+        Self::new(
+            self.x.clamp(min.x, max.x),
+            self.y.clamp(min.y, max.y),
+        )
+    }
+
+    #[inline]
+    pub const fn clamp_both(self, min: f32, max: f32) -> Self {
+        Self::new(
+            self.x.clamp(min, max),
+            self.y.clamp(min, max),
+        )
+    }
+
+    #[inline]
+    pub const fn clamp_uv(self) -> Self {
+        Self::clamp_both(self, 0.0, 1.0)
+    }
+
+    #[inline]
+    pub const fn lerp(self, other: Self, t: f32) -> Self {
+        Self::new(
+            lerp(self.x, other.x, t),
+            lerp(self.y, other.y, t),
+        )
+    }
+
+    #[inline]
+    pub const fn clamped_lerp(self, other: Self, t: f32) -> Self {
+        self.lerp(other, t.clamp(0.0, 1.0))
     }
 }
 
