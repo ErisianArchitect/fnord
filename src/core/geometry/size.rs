@@ -1,9 +1,8 @@
-use std::ops::{
-    Add, Sub,
-    Mul, Div, Rem,
-    Neg,
-    Index, IndexMut,
-};
+use std::{borrow::{Borrow, BorrowMut}, ops::{
+    Add, Deref, DerefMut, Div, Index, IndexMut, Mul, Neg, Rem, Sub
+}};
+use crate::core::geometry::dims::Dims;
+
 use super::util::*;
 
 /// Represents width and height dimensions.
@@ -188,6 +187,67 @@ impl Size {
     #[inline]
     pub const fn rem_dims(self, width: f32, height: f32) -> Self {
         Self::new(self.width % width, self.height % height)
+    }
+}
+
+impl Deref for Size {
+    type Target = Dims;
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        unsafe {
+            &*(self as *const Self as *const Dims)
+        }
+    }
+}
+
+impl DerefMut for Size {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe {
+            &mut *(self as *mut Self as *mut Dims)
+        }
+    }
+}
+
+impl AsRef<Dims> for Size {
+    #[inline]
+    fn as_ref(&self) -> &Dims {
+        &*self
+    }
+}
+
+impl AsRef<[f32]> for Size {
+    #[inline]
+    fn as_ref(&self) -> &[f32] {
+        self.as_slice()
+    }
+}
+
+impl AsMut<Dims> for Size {
+    #[inline]
+    fn as_mut(&mut self) -> &mut Dims {
+        &mut *self
+    }
+}
+
+impl AsMut<[f32]> for Size {
+    #[inline]
+    fn as_mut(&mut self) -> &mut [f32] {
+        self.as_mut_slice()
+    }
+}
+
+impl Borrow<Dims> for Size {
+    #[inline]
+    fn borrow(&self) -> &Dims {
+        &*self
+    }
+}
+
+impl BorrowMut<Dims> for Size {
+    #[inline]
+    fn borrow_mut(&mut self) -> &mut Dims {
+        &mut *self
     }
 }
 
@@ -415,17 +475,5 @@ impl Rem<f32> for Size {
     #[inline]
     fn rem(self, rhs: f32) -> Self::Output {
         self.rem_dims(rhs, rhs)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    
-    #[test]
-    fn size_math_test() {
-        let base = Size::new(10.0, 10.0);
-        let mult = <Size as std::ops::Add<_>>::add(base, Size::new(1.0, 2.0));
-        println!("{mult:?}");
     }
 }
