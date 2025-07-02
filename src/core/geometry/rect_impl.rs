@@ -151,6 +151,11 @@ impl Rect {
         )
     }
 
+    #[inline]
+    pub const fn set_size(&mut self, size: Size) {
+        self.max = self.min.add_dims(size.width, size.height);
+    }
+
     // Dimensions
     #[inline]
     pub const fn width(self) -> f32 {
