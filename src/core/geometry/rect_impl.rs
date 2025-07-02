@@ -729,6 +729,22 @@ impl Rect {
         let mar = msize.aspect_ratio();
         let rar = size.aspect_ratio();
         let scalar = if mar >= rar {
+            msize.height / size.height
+        } else {
+            msize.width / size.width
+        };
+        let new_size = size.scale(scalar);
+        Rect::centered(self.center(), new_size)
+    }
+
+    /// Returns a rect outside of `self` that fits perfectly in the center
+    /// by scaling `size`.
+    pub const fn scale_outside(self, size: Size) -> Self {
+        // determine which scaling method must be used.
+        let msize = self.size();
+        let mar = msize.aspect_ratio();
+        let rar = size.aspect_ratio();
+        let scalar = if mar >= rar {
             msize.width / size.width
         } else {
             msize.height / size.height
