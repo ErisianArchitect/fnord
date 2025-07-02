@@ -88,6 +88,11 @@ impl Pos {
     }
 
     #[inline]
+    pub fn rem_euclid_dims(self, x: f32, y: f32) -> Self {
+        Self::new(self.x.rem_euclid(x), self.y.rem_euclid(y))
+    }
+
+    #[inline]
     pub const fn negate(self) -> Self {
         Self::new(-self.x, -self.y)
     }
