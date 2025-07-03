@@ -61,6 +61,12 @@ impl Grid {
         Self::centered_square(Pos::ZERO, size)
     }
 
+    /// Creates a grid where the given [Rect] becomes the cell at `(0, 0)`.
+    #[inline]
+    pub const fn from_rect(rect: Rect) -> Self {
+        Self::new(rect.min, rect.size())
+    }
+
     #[inline]
     pub fn snap(self, pos: Pos) -> Pos {
         let offset_pos = pos.sub_dims(self.offset.x, self.offset.y);
@@ -104,10 +110,10 @@ impl Grid {
     pub fn snap_rect(self, rect: Rect) -> Rect {
         let min = self.snap_left_top(rect.min);
         let max = self.snap_right_bottom(rect.max);
-        Rect {
+        Rect::from_min_max(
             min,
             max,
-        }
+        )
     }
 
     /// Returns the [Rect] of the cell that `pos` is inside.
@@ -115,6 +121,55 @@ impl Grid {
     pub fn snap_cell_rect(self, pos: Pos) -> Rect {
         let min = self.snap_left_top(pos);
         Rect::from_min_size(min, self.cell_size)
+    }
+
+    #[inline]
+    pub const fn cell_rect(self, x: i32, y: i32) -> Rect {
+        let left = self.cell_size.width * x as f32;
+        let top = self.cell_size.height * y as f32;
+        Rect::from_min_size(Pos::new(left, top), self.cell_size)
+    }
+
+    #[inline]
+    pub const fn local_to_world(self, pos: Pos) -> Pos {
+        let left = self.cell_size.width * pos.x;
+        let top = self.cell_size.height * pos.y;
+        Pos::new(left, top)
+    }
+
+    #[inline]
+    pub const fn local_to_world_rect(self, rect: Rect) -> Rect {
+        let min = self.local_to_world(rect.min);
+        let max = self.local_to_world(rect.max);
+        Rect::from_min_max(
+            min,
+            max,
+        )
+    }
+
+    #[inline]
+    pub const fn world_to_local(self, pos: Pos) -> Pos {
+        let left = pos.x / self.cell_size.width;
+        let top = pos.y / self.cell_size.height;
+        Pos::new(left, top)
+    }
+
+    #[inline]
+    pub const fn world_to_local_rect(self, rect: Rect) -> Rect {
+        let min = self.world_to_local(rect.min);
+        let max = self.world_to_local(rect.max);
+        Rect::from_min_max(
+            min,
+            max,
+        )
+    }
+
+    /// Returns the `(x, y)` coordinate of the cell that `pos` occupies.
+    #[inline]
+    pub fn cell_coord(self, pos: Pos) -> (i32, i32) {
+        let x = (pos.x / self.cell_size.width).floor() as i32;
+        let y = (pos.y / self.cell_size.height).floor() as i32;
+        (x, y)
     }
 }
 
