@@ -5,3 +5,12 @@ version = 4
 [[package]]
 name = "fnord"
 version = "0.1.0-indev"
+dependencies = [
+ "panicmsg",
+]
+
+[[package]]
+name = "panicmsg"
+version = "1.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "074c941852b5a59932d7e7caca954d3731c01938fe4aa0f3d2f87d1470aef7ac"

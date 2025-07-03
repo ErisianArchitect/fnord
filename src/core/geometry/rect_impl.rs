@@ -29,15 +29,6 @@ impl Rect {
     pub const ONE: Self = Self::from_min_max(Pos::ZERO, Pos::ONE);
 
     #[inline]
-    pub const fn new(x: f32, y: f32, width: f32, height: f32) -> Self {
-        debug_assert!(width >= 0.0 && height >= 0.0);
-        Self {
-            min: Pos::new(x, y),
-            max: Pos::new(x + width, y + height),
-        }
-    }
-
-    #[inline]
     pub const fn from_min_max(min: Pos, max: Pos) -> Self {
         debug_assert!(min.x <= max.x && min.y <= max.y);
         Self {
@@ -47,55 +38,52 @@ impl Rect {
     }
 
     #[inline]
+    pub const fn new(x: f32, y: f32, width: f32, height: f32) -> Self {
+        debug_assert!(width >= 0.0 && height >= 0.0);
+        Self::from_min_max(
+            Pos::new(x, y),
+            Pos::new(x + width, y + height)
+        )
+    }
+
+    #[inline]
     pub const fn from_min_size(min: Pos, size: Size) -> Self {
         debug_assert!(size.is_positive());
-        Self {
+        Self::from_min_max(
             min,
-            max: min.add_dims(size.width, size.height),
-        }
+            min.add_dims(size.width, size.height)
+        )
     }
 
     #[inline]
     pub const fn square_from_min_size(min: Pos, size: f32) -> Self {
-        Self {
+        Self::from_min_max(
             min,
-            max: Pos::new(min.x + size, min.y + size),
-        }
+            Pos::new(min.x + size, min.y + size)
+        )
     }
 
     #[inline]
     pub const fn centered(center: Pos, size: Size) -> Self {
         let half_size = size.mul_dims(0.5, 0.5);
-        Self {
-            min: center.sub_dims(half_size.width, half_size.height),
-            max: center.add_dims(half_size.width, half_size.height),
-        }
+        Self::from_min_max(
+            center.sub_dims(half_size.width, half_size.height),
+            center.add_dims(half_size.width, half_size.height)
+        )
     }
 
     #[inline]
     pub const fn centered_square(center: Pos, size: f32) -> Self {
         let half_size = size * 0.5;
-        Self {
-            min: center.sub_dims(half_size, half_size),
-            max: center.add_dims(half_size, half_size),
-        }
+        Self::from_min_max(
+            center.sub_dims(half_size, half_size),
+            center.add_dims(half_size, half_size)
+        )
     }
 
     pub const fn from_anchored_pivot(anchor: Anchor, pivot: Pos, size: Size) -> Rect {
         match anchor {
             Anchor::LeftTop => Self::from_min_size(pivot, size),
-            Anchor::RightTop => Self::from_min_size(
-                Pos::new(pivot.x - size.width, pivot.y),
-                size,
-            ),
-            Anchor::LeftBottom => Self::from_min_size(
-                Pos::new(pivot.x, pivot.y - size.height),
-                size,
-            ),
-            Anchor::RightBottom => Self::from_min_size(
-                Pos::new(pivot.x - size.width, pivot.y - size.height),
-                size,
-            ),
             Anchor::LeftCenter => {
                 let half_height = size.half_height();
                 Self::from_min_size(
@@ -103,13 +91,21 @@ impl Rect {
                     size,
                 )
             },
-            Anchor::TopCenter => {
+            Anchor::LeftBottom => Self::from_min_size(
+                Pos::new(pivot.x, pivot.y - size.height),
+                size,
+            ),
+            Anchor::BottomCenter => {
                 let half_width = size.half_width();
                 Self::from_min_size(
-                    Pos::new(pivot.x - half_width, pivot.y),
+                    Pos::new(pivot.x - half_width, pivot.y - size.height),
                     size,
                 )
             },
+            Anchor::RightBottom => Self::from_min_size(
+                Pos::new(pivot.x - size.width, pivot.y - size.height),
+                size,
+            ),
             Anchor::RightCenter => {
                 let half_height = size.half_height();
                 Self::from_min_size(
@@ -117,10 +113,14 @@ impl Rect {
                     size,
                 )
             },
-            Anchor::BottomCenter => {
+            Anchor::RightTop => Self::from_min_size(
+                Pos::new(pivot.x - size.width, pivot.y),
+                size,
+            ),
+            Anchor::TopCenter => {
                 let half_width = size.half_width();
                 Self::from_min_size(
-                    Pos::new(pivot.x - half_width, pivot.y - size.height),
+                    Pos::new(pivot.x - half_width, pivot.y),
                     size,
                 )
             },
@@ -179,26 +179,11 @@ impl Rect {
     }
 
     #[inline]
-    pub const fn set_size(&mut self, size: Size) {
-        self.max = self.min.add_dims(size.width, size.height);
-    }
-
-    #[inline]
-    pub const fn set_size_centered(&mut self, size: Size) {
-        let mid_point = self.center();
-        let half_size = size.half();
-        self.min.x = mid_point.x - half_size.width;
-        self.min.y = mid_point.y - half_size.height;
-        self.max.x = mid_point.x + half_size.width;
-        self.max.y = mid_point.y + half_size.height;
-    }
-
-    #[inline]
     pub const fn resize(self, size: Size) -> Self {
-        Self {
-            min: self.min,
-            max: self.max.add_dims(size.width, size.height),
-        }
+        Self::from_min_max(
+            self.min,
+            self.max.add_dims(size.width, size.height)
+        )
     }
 
     #[inline]
@@ -215,6 +200,26 @@ impl Rect {
                 mid_point.y + half_size.height,
             ),
         )
+    }
+
+    #[inline]
+    pub const fn resize_anchored(self, size: Size, anchor: Anchor) -> Self {
+        Self::from_anchored_pivot(anchor, self.anchor_pos(anchor), size)
+    }
+
+    #[inline]
+    pub const fn set_size(&mut self, size: Size) {
+        self.max = self.min.add_dims(size.width, size.height);
+    }
+
+    #[inline]
+    pub const fn set_size_centered(&mut self, size: Size) {
+        *self = self.resize_centered(size)
+    }
+
+    #[inline]
+    pub const fn set_size_anchored(&mut self, size: Size, anchor: Anchor) {
+        *self = self.resize_anchored(size, anchor)
     }
 
     // Dimensions
@@ -447,13 +452,13 @@ impl Rect {
     pub const fn place_anchor(&mut self, anchor: Anchor, pos: Pos) {
         match anchor {
             Anchor::LeftTop => self.set_left_top(pos),
-            Anchor::RightTop => self.set_right_top(pos),
-            Anchor::LeftBottom => self.set_left_bottom(pos),
-            Anchor::RightBottom => self.set_right_bottom(pos),
             Anchor::LeftCenter => self.set_left_center(pos),
-            Anchor::TopCenter => self.set_top_center(pos),
-            Anchor::RightCenter => self.set_right_center(pos),
+            Anchor::LeftBottom => self.set_left_bottom(pos),
             Anchor::BottomCenter => self.set_bottom_center(pos),
+            Anchor::RightBottom => self.set_right_bottom(pos),
+            Anchor::RightCenter => self.set_right_center(pos),
+            Anchor::RightTop => self.set_right_top(pos),
+            Anchor::TopCenter => self.set_top_center(pos),
             Anchor::Center => self.set_center(pos),
         }
     }
@@ -501,10 +506,10 @@ impl Rect {
         let top = self.min.y.max(other.min.y);
         let right = self.max.x.min(other.max.x);
         let bottom = self.max.y.min(other.max.y);
-        Some(Rect {
-            min: pos(left, top),
-            max: pos(right, bottom),
-        })
+        Some(Self::from_min_max(
+            pos(left, top),
+            pos(right, bottom)
+        ))
     }
 
     #[inline]
@@ -515,96 +520,112 @@ impl Rect {
 
     #[inline]
     pub const fn add_offset(self, offset: Pos) -> Self {
-        Self {
-            min: Pos::new(self.min.x + offset.x, self.min.y + offset.y),
-            max: Pos::new(self.max.x + offset.x, self.max.y + offset.y),
-        }
+        Self::from_min_max(
+            Pos::new(self.min.x + offset.x, self.min.y + offset.y),
+            Pos::new(self.max.x + offset.x, self.max.y + offset.y)
+        )
     }
 
     #[inline]
     pub const fn sub_offset(self, offset: Pos) -> Self {
-        Self {
-            min: Pos::new(self.min.x - offset.x, self.min.y - offset.y),
-            max: Pos::new(self.max.x - offset.x, self.max.y - offset.y),
-        }
+        Self::from_min_max(
+            Pos::new(self.min.x - offset.x, self.min.y - offset.y),
+            Pos::new(self.max.x - offset.x, self.max.y - offset.y)
+        )
     }
 
     #[inline]
     pub const fn add_size(self, size: Size) -> Self {
-        Self {
-            min: self.min,
-            max: self.max.add_dims(size.width, size.height),
-        }
+        Self::from_min_max(
+            self.min,
+            self.max.add_dims(size.width, size.height)
+        )
     }
 
     #[inline]
     pub const fn sub_size(self, size: Size) -> Self {
-        Self {
-            min: self.min,
-            max: self.max.sub_dims(size.width, size.height),
-        }
+        Self::from_min_max(
+            self.min,
+            self.max.sub_dims(size.width, size.height)
+        )
     }
 
     #[inline]
     pub const fn anchor_pos(&self, anchor: Anchor) -> Pos {
         match anchor {
             Anchor::LeftTop => self.left_top(),
-            Anchor::RightTop => self.right_top(),
-            Anchor::LeftBottom => self.left_bottom(),
-            Anchor::RightBottom => self.right_bottom(),
             Anchor::LeftCenter => self.left_center(),
-            Anchor::TopCenter => self.top_center(),
-            Anchor::RightCenter => self.right_center(),
+            Anchor::LeftBottom => self.left_bottom(),
             Anchor::BottomCenter => self.bottom_center(),
+            Anchor::RightBottom => self.right_bottom(),
+            Anchor::RightCenter => self.right_center(),
+            Anchor::RightTop => self.right_top(),
+            Anchor::TopCenter => self.top_center(),
             Anchor::Center => self.center(),
         }
     }
 
     #[inline]
     pub const fn deflate(self, shrink: f32) -> Self {
-        Self {
-            min: Pos::new(self.min.x + shrink, self.min.y + shrink),
-            max: Pos::new(self.max.x - shrink, self.max.y - shrink),
-        }
+        Self::from_min_max(
+            Pos::new(self.min.x + shrink, self.min.y + shrink),
+            Pos::new(self.max.x - shrink, self.max.y - shrink)
+        )
     }
 
     #[inline]
     pub const fn deflate2(self, x: f32, y: f32) -> Self {
-        Self {
-            min: Pos::new(self.min.x + x, self.min.y + y),
-            max: Pos::new(self.max.x - x, self.max.y - y),
-        }
+        Self::from_min_max(
+            Pos::new(self.min.x + x, self.min.y + y),
+            Pos::new(self.max.x - x, self.max.y - y)
+        )
     }
 
     #[inline]
     pub const fn inflate(self, expand: f32) -> Self {
-        Self {
-            min: Pos::new(self.min.x - expand, self.min.y - expand),
-            max: Pos::new(self.max.x + expand, self.max.y + expand),
-        }
+        Self::from_min_max(
+            Pos::new(self.min.x - expand, self.min.y - expand),
+            Pos::new(self.max.x + expand, self.max.y + expand)
+        )
     }
 
     #[inline]
     pub const fn inflate2(self, x: f32, y: f32) -> Self {
-        Self {
-            min: Pos::new(self.min.x - x, self.min.y - y),
-            max: Pos::new(self.max.x + x, self.max.y + y),
-        }
+        Self::from_min_max(
+            Pos::new(self.min.x - x, self.min.y - y),
+            Pos::new(self.max.x + x, self.max.y + y)
+        )
     }
 
     /// Add a [Padding] to a [Rect].
     #[inline]
     pub const fn add_padding(self, padding: Padding) -> Self {
-        Self {
-            min: Pos::new(self.min.x + padding.left as f32, self.min.y + padding.top as f32),
-            max: Pos::new(self.max.x - padding.right as f32, self.max.y - padding.bottom as f32),
-        }
+        Self::from_min_max(
+            Pos::new(self.min.x + padding.left, self.min.y + padding.top),
+            Pos::new(self.max.x - padding.right, self.max.y - padding.bottom)
+        )
     }
 
     #[inline]
     pub const fn add_margin(self, margin: Margin) -> Self {
-        let new_size = self.size().add_margin(margin);
-        Self::from_min_size(self.min, new_size)
+        Self::from_min_max(
+            self.min,
+            self.max.add_dims(margin.x(), margin.y())
+        )
+    }
+
+    #[inline]
+    pub const fn add_margin_centered(self, margin: Margin) -> Self {
+        Self::from_min_max(
+            Pos::new(
+                self.min.x - margin.left,
+                self.min.y - margin.top,
+            ),
+            Pos::new(
+                self.max.x + margin.right,
+                self.max.y + margin.bottom,
+            )
+        )
     }
 
     #[inline]
@@ -618,16 +639,32 @@ impl Rect {
     /// This is the inverse of `add_padding`.
     #[inline]
     pub const fn sub_padding(self, padding: Padding) -> Self {
-        Self {
-            min: Pos::new(self.min.x - padding.left as f32, self.min.y - padding.top as f32),
-            max: Pos::new(self.max.x + padding.right as f32, self.max.y + padding.bottom as f32),
-        }
+        Self::from_min_max(
+            Pos::new(self.min.x - padding.left, self.min.y - padding.top),
+            Pos::new(self.max.x + padding.right, self.max.y + padding.bottom)
+        )
     }
 
     #[inline]
     pub const fn sub_margin(self, margin: Margin) -> Self {
-        let new_size = self.size().sub_margin(margin);
-        Self::from_min_size(self.min, new_size)
+        Self::from_min_max(
+            self.min,
+            self.max.sub_dims(margin.x(), margin.y())
+        )
+    }
+
+    #[inline]
+    pub const fn sub_margin_centered(self, margin: Margin) -> Self {
+        Self::from_min_max(
+            Pos::new(
+                self.min.x + margin.left,
+                self.min.y + margin.top,
+            ),
+            Pos::new(
+                self.max.x - margin.right,
+                self.max.y - margin.bottom,
+            )
+        )
     }
 
     #[inline]
@@ -640,35 +677,35 @@ impl Rect {
     /// Applies [Padding] in-place, mutating the [Rect].
     #[inline]
     pub const fn apply_padding(&mut self, padding: Padding) {
-        self.min.x += padding.left as f32;
-        self.min.y += padding.top as f32;
-        self.max.x -= padding.right as f32;
-        self.max.y -= padding.bottom as f32;
+        self.min.x += padding.left;
+        self.min.y += padding.top;
+        self.max.x -= padding.right;
+        self.max.y -= padding.bottom;
     }
 
     #[inline]
     pub const fn apply_margin(&mut self, margin: Margin) {
-        self.min.x -= margin.left as f32;
-        self.min.y -= margin.top as f32;
-        self.max.x += margin.right as f32;
-        self.max.y += margin.bottom as f32;
+        self.min.x -= margin.left;
+        self.min.y -= margin.top;
+        self.max.x += margin.right;
+        self.max.y += margin.bottom;
     }
 
     /// Removes [Padding] in-place, mutating the [Rect].
     #[inline]
     pub const fn remove_padding(&mut self, padding: Padding) {
-        self.min.x -= padding.left as f32;
-        self.min.y -= padding.top as f32;
-        self.max.x += padding.right as f32;
-        self.max.y += padding.bottom as f32;
+        self.min.x -= padding.left;
+        self.min.y -= padding.top;
+        self.max.x += padding.right;
+        self.max.y += padding.bottom;
     }
 
     #[inline]
     pub const fn remove_margin(&mut self, margin: Margin) {
-        self.min.x += margin.left as f32;
-        self.min.y += margin.top as f32;
-        self.max.x -= margin.right as f32;
-        self.max.y -= margin.bottom as f32;
+        self.min.x += margin.left;
+        self.min.y += margin.top;
+        self.max.x -= margin.right;
+        self.max.y -= margin.bottom;
     }
 
     /// This will return (`left`, `right`).
@@ -791,20 +828,20 @@ impl Rect {
                 min: pos(self.min.x - size, self.min.y - size),
                 max: self.min,
             },
-            (Anchor::RightTop, Placement::Inside) => Rect {
-                min: pos(self.max.x - size, self.min.y),
-                max: pos(self.max.x, self.min.y + size),
+            (Anchor::LeftCenter, Placement::Inside) => Rect {
+                min: pos(self.min.x, self.min.y + size),
+                max: pos(self.min.x + size, self.max.y - size),
             },
-            (Anchor::RightTop, Placement::Middle) => {
+            (Anchor::LeftCenter, Placement::Middle) => {
                 let half_size = size * 0.5;
                 Rect {
-                    min: pos(self.max.x - half_size, self.min.y - half_size),
-                    max: pos(self.max.x + half_size, self.min.y + half_size),
+                    min: pos(self.min.x - half_size, self.min.y + half_size),
+                    max: pos(self.min.x + half_size, self.max.y - half_size),
                 }
             },
-            (Anchor::RightTop, Placement::Outside) => Rect {
-                min: pos(self.max.x, self.min.y - size),
-                max: pos(self.max.x + size, self.min.y),
+            (Anchor::LeftCenter, Placement::Outside) => Rect {
+                min: pos(self.min.x - size, self.min.y),
+                max: self.left_bottom(),
             },
             (Anchor::LeftBottom, Placement::Inside) => Rect {
                 min: pos(self.min.x, self.max.y - size),
@@ -821,6 +858,21 @@ impl Rect {
                 min: pos(self.min.x - size, self.max.y),
                 max: pos(self.min.x, self.max.y + size),
             },
+            (Anchor::BottomCenter, Placement::Inside) => Rect {
+                min: pos(self.min.x + size, self.max.y - size),
+                max: pos(self.max.x - size, self.max.y),
+            },
+            (Anchor::BottomCenter, Placement::Middle) => {
+                let half_size = size * 0.5;
+                Rect {
+                    min: pos(self.min.x + half_size, self.max.y - half_size),
+                    max: pos(self.max.x - half_size, self.max.y + half_size),
+                }
+            },
+            (Anchor::BottomCenter, Placement::Outside) => Rect {
+                min: self.left_bottom(),
+                max: pos(self.max.x, self.max.y + size),
+            },
             (Anchor::RightBottom, Placement::Inside) => Rect {
                 min: pos(self.max.x - size, self.max.y - size),
                 max: self.max,
@@ -835,36 +887,6 @@ impl Rect {
             (Anchor::RightBottom, Placement::Outside) => Rect {
                 min: self.max,
                 max: pos(self.max.x + size, self.max.y + size),
-            },
-            (Anchor::LeftCenter, Placement::Inside) => Rect {
-                min: pos(self.min.x, self.min.y + size),
-                max: pos(self.min.x + size, self.max.y - size),
-            },
-            (Anchor::LeftCenter, Placement::Middle) => {
-                let half_size = size * 0.5;
-                Rect {
-                    min: pos(self.min.x - half_size, self.min.y + half_size),
-                    max: pos(self.min.x + half_size, self.max.y - half_size),
-                }
-            },
-            (Anchor::LeftCenter, Placement::Outside) => Rect {
-                min: pos(self.min.x - size, self.min.y),
-                max: self.left_bottom(),
-            },
-            (Anchor::TopCenter, Placement::Inside) => Rect {
-                min: pos(self.min.x + size, self.min.y),
-                max: pos(self.max.x - size, self.min.y + size),
-            },
-            (Anchor::TopCenter, Placement::Middle) => {
-                let half_size = size * 0.5;
-                Rect {
-                    min: pos(self.min.x + half_size, self.min.y - half_size),
-                    max: pos(self.max.x - half_size, self.min.y + half_size),
-                }
-            },
-            (Anchor::TopCenter, Placement::Outside) => Rect {
-                min: pos(self.min.x, self.min.y - size),
-                max: self.right_top(),
             },
             (Anchor::RightCenter, Placement::Inside) => Rect {
                 min: pos(self.max.x - size, self.min.y + size),
@@ -881,20 +903,35 @@ impl Rect {
                 min: self.right_top(),
                 max: pos(self.max.x + size, self.max.y),
             },
-            (Anchor::BottomCenter, Placement::Inside) => Rect {
-                min: pos(self.min.x + size, self.max.y - size),
-                max: pos(self.max.x - size, self.max.y),
+            (Anchor::RightTop, Placement::Inside) => Rect {
+                min: pos(self.max.x - size, self.min.y),
+                max: pos(self.max.x, self.min.y + size),
             },
-            (Anchor::BottomCenter, Placement::Middle) => {
+            (Anchor::RightTop, Placement::Middle) => {
                 let half_size = size * 0.5;
                 Rect {
-                    min: pos(self.min.x + half_size, self.max.y - half_size),
-                    max: pos(self.max.x - half_size, self.max.y + half_size),
+                    min: pos(self.max.x - half_size, self.min.y - half_size),
+                    max: pos(self.max.x + half_size, self.min.y + half_size),
                 }
             },
-            (Anchor::BottomCenter, Placement::Outside) => Rect {
-                min: self.left_bottom(),
-                max: pos(self.max.x, self.max.y + size),
+            (Anchor::RightTop, Placement::Outside) => Rect {
+                min: pos(self.max.x, self.min.y - size),
+                max: pos(self.max.x + size, self.min.y),
+            },
+            (Anchor::TopCenter, Placement::Inside) => Rect {
+                min: pos(self.min.x + size, self.min.y),
+                max: pos(self.max.x - size, self.min.y + size),
+            },
+            (Anchor::TopCenter, Placement::Middle) => {
+                let half_size = size * 0.5;
+                Rect {
+                    min: pos(self.min.x + half_size, self.min.y - half_size),
+                    max: pos(self.max.x - half_size, self.min.y + half_size),
+                }
+            },
+            (Anchor::TopCenter, Placement::Outside) => Rect {
+                min: pos(self.min.x, self.min.y - size),
+                max: self.right_top(),
             },
             (Anchor::Center, Placement::Inside) => Rect {
                 min: pos(self.min.x + size, self.min.y + size),
@@ -916,6 +953,11 @@ impl Rect {
         Self::centered(self.anchor_pos(anchor), size)
     }
 
+    #[inline]
+    pub const fn square_handle_rect(self, anchor: Anchor, size: f32) -> Self {
+        Self::centered_square(self.anchor_pos(anchor), size)
+    }
+
     /// Recturns the smallest [Rect] that contains both [Rect]s.
     pub const fn combine(self, other: Rect) -> Self {
         let min_x = self.min.x.min(other.min.x);
@@ -930,6 +972,8 @@ impl Rect {
 
     #[inline]
     pub const fn aspect_ratio(self) -> f32 {
+        // divide by width by aspect ratio to get height
+        // multiply height by aspect ratio to get width
         self.width() / self.height()
     }
 
@@ -1056,13 +1100,40 @@ impl Rect {
             (false, false, false, false) => invalid("min is greater than max"),
         }
     }
+
+
+    /// Effectively swaps the width and height, lefting the min at the same location.
+    #[inline]
+    pub const fn rotated(self) -> Self {
+        Self::from_min_size(self.min, self.size().swap_dims())
+    }
+
+    #[inline]
+    pub const fn rotate(&mut self) {
+        self.set_size(self.size().swap_dims());
+    }
+
+    #[inline]
+    pub const fn rotated_center(self) -> Self {
+        Self::centered(self.center(), self.size().swap_dims())
+    }
+
+    #[inline]
+    pub const fn rotate_center(&mut self) {
+        self.set_size_centered(self.size().swap_dims());
+    }
+
+    #[inline]
+    pub const fn rotated_anchor(self, anchor: Anchor) -> Self {
+        Self::from_anchored_pivot(anchor, self.anchor_pos(anchor), self.size().swap_dims())
+    }
 }
 
 impl std::ops::Add<Margin> for Rect {
     type Output = Rect;
     #[inline]
     fn add(self, rhs: Margin) -> Self::Output {
-        self.add_margin(rhs)
+        self.add_margin_centered(rhs)
     }
 }
 
@@ -1070,7 +1141,7 @@ impl std::ops::Sub<Margin> for Rect {
     type Output = Rect;
     #[inline]
     fn sub(self, rhs: Margin) -> Self::Output {
-        self.sub_margin(rhs)
+        self.sub_margin_centered(rhs)
     }
 }
 
