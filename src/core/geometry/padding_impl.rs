@@ -142,6 +142,26 @@ impl Padding {
     pub const fn clamped_lerp(self, other: Self, t: f32) -> Self {
         self.lerp(other, t.clamp(0.0, 1.0))
     }
+
+    #[inline]
+    pub const fn leftf(self) -> f32 {
+        self.left as f32
+    }
+
+    #[inline]
+    pub const fn topf(self) -> f32 {
+        self.top as f32
+    }
+
+    #[inline]
+    pub const fn rightf(self) -> f32 {
+        self.right as f32
+    }
+
+    #[inline]
+    pub const fn bottomf(self) -> f32 {
+        self.bottom as f32
+    }
 }
 
 impl From<Margin> for Padding {
