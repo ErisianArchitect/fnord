@@ -264,6 +264,11 @@ impl Size {
             self.height + padding.y() as f32,
         )
     }
+
+    #[inline]
+    pub fn map<R, F: FnOnce(f32, f32) -> R>(self, map: F) -> R {
+        map(self.width, self.height)
+    }
 }
 
 impl Deref for Size {
