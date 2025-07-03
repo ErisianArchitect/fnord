@@ -137,15 +137,37 @@ impl Rect {
     #[inline]
     pub const fn from_points(points: [Pos; 2]) -> Self {
         Self {
-            min: Pos::new(
-                points[0].x.min(points[1].x),
-                points[0].y.min(points[1].y)
-            ),
-            max: Pos::new(
-                points[0].x.max(points[1].x),
-                points[0].y.max(points[1].y)
-            ),
+            min: points[0].min(points[1]),
+            max: points[1].max(points[0]),
         }
+    }
+
+    #[inline]
+    pub const fn from_points_slice(slice: &[Pos]) -> Self {
+        debug_assert!(slice.len() >= 2);
+        Self {
+            min: slice[0].min(slice[1]),
+            max: slice[1].max(slice[0]),
+        }
+    }
+
+    /// Ensures that the min is the min and the max is the max.
+    #[inline]
+    pub const fn fix(&mut self) {
+        let min = self.min.min(self.max);
+        let max = self.max.max(self.min);
+        self.min = min;
+        self.max = max;
+    }
+
+    /// Returns a [Rect] where the `min` and `max` are "fixed".
+    /// That is, the `min` is the real minimum bound and the max
+    /// is the real maximum bound.
+    #[inline]
+    pub const fn fixed(self) -> Self {
+        let min = self.min.min(self.max);
+        let max = self.max.max(self.min);
+        Self::from_min_max(min, max)
     }
 
     #[inline]
@@ -162,11 +184,37 @@ impl Rect {
     }
 
     #[inline]
+    pub const fn set_size_centered(&mut self, size: Size) {
+        let mid_point = self.center();
+        let half_size = size.half();
+        self.min.x = mid_point.x - half_size.width;
+        self.min.y = mid_point.y - half_size.height;
+        self.max.x = mid_point.x + half_size.width;
+        self.max.y = mid_point.y + half_size.height;
+    }
+
+    #[inline]
     pub const fn resize(self, size: Size) -> Self {
         Self {
             min: self.min,
             max: self.max.add_dims(size.width, size.height),
         }
+    }
+
+    #[inline]
+    pub const fn resize_centered(self, size: Size) -> Self {
+        let mid_point = self.center();
+        let half_size = size.half();
+        Self::from_min_max(
+            Pos::new(
+                mid_point.x - half_size.width,
+                mid_point.y - half_size.height
+            ),
+            Pos::new(
+                mid_point.x + half_size.width,
+                mid_point.y + half_size.height,
+            ),
+        )
     }
 
     // Dimensions
@@ -181,6 +229,20 @@ impl Rect {
     }
 
     #[inline]
+    pub const fn set_width_centered(&mut self, width: f32) {
+        let half_width = half(width);
+        let cur_half_width = half(self.width());
+        let mid_x = self.min.x + cur_half_width;
+        self.min.x = mid_x - half_width;
+        self.max.x = mid_x + half_width;
+    }
+
+    #[inline]
+    pub const fn set_width_right(&mut self, width: f32) {
+        self.min.x = self.max.x - width;
+    }
+
+    #[inline]
     pub const fn height(self) -> f32 {
         self.max.y - self.min.y
     }
@@ -188,6 +250,20 @@ impl Rect {
     #[inline]
     pub const fn set_height(&mut self, height: f32) {
         self.max.y = self.min.y + height;
+    }
+
+    #[inline]
+    pub const fn set_height_centered(&mut self, height: f32) {
+        let half_height = half(height);
+        let cur_half_height = half(self.height());
+        let mid_y = self.min.y + cur_half_height;
+        self.min.y = mid_y - half_height;
+        self.max.y = mid_y + half_height;
+    }
+
+    #[inline]
+    pub const fn set_height_bottom(&mut self, height: f32) {
+        self.min.y = self.max.y - height;
     }
 
     #[inline]
@@ -203,6 +279,11 @@ impl Rect {
     }
 
     #[inline]
+    pub const fn set_left_bound(&mut self, left: f32) {
+        self.min.x = left;
+    }
+
+    #[inline]
     pub const fn right(self) -> f32 {
         self.max.x
     }
@@ -211,6 +292,11 @@ impl Rect {
     pub const fn set_right(&mut self, right: f32) {
         let width = self.width();
         self.min.x = right - width;
+        self.max.x = right;
+    }
+
+    #[inline]
+    pub const fn set_right_bound(&mut self, right: f32) {
         self.max.x = right;
     }
 
@@ -345,8 +431,8 @@ impl Rect {
 
     #[inline]
     pub const fn center(self) -> Pos {
-        let center_x = self.min.x + (self.max.x - self.min.x) * 0.5;
-        let center_y = self.min.y + (self.max.y - self.min.y) * 0.5;
+        let center_x = lerp(self.min.x, self.max.x, 0.5);
+        let center_y = lerp(self.min.y, self.max.y, 0.5);
         Pos::new(center_x, center_y)
     }
 
@@ -519,10 +605,8 @@ impl Rect {
 
     #[inline]
     pub const fn add_margin(self, margin: Margin) -> Self {
-        Self {
-            min: Pos::new(self.min.x - margin.left as f32, self.min.y - margin.top as f32),
-            max: Pos::new(self.max.x + margin.right as f32, self.max.y + margin.bottom as f32),
-        }
+        let new_size = self.size().add_margin(margin);
+        Self::from_min_size(self.min, new_size)
     }
 
     #[inline]
@@ -544,10 +628,15 @@ impl Rect {
 
     #[inline]
     pub const fn sub_margin(self, margin: Margin) -> Self {
-        Self {
-            min: Pos::new(self.min.x + margin.left as f32, self.min.y + margin.top as f32),
-            max: Pos::new(self.max.x - margin.right as f32, self.max.y - margin.bottom as f32),
-        }
+        let new_size = self.size().sub_margin(margin);
+        Self::from_min_size(self.min, new_size)
+    }
+
+    #[inline]
+    pub const fn sub_margin_anchored(self, margin: Margin, anchor: Anchor) -> Self {
+        let pivot = self.anchor_pos(anchor);
+        let new_size = self.size().sub_margin(margin);
+        Self::from_anchored_pivot(anchor, pivot, new_size)
     }
 
     /// Applies [Padding] in-place, mutating the [Rect].
@@ -903,6 +992,86 @@ impl Rect {
     #[inline]
     pub const fn clamped_lerp(self, other: Rect, t: f32) -> Self {
         self.lerp(other, t.clamp(0.0, 1.0))
+    }
+
+    #[inline]
+    pub fn map<R, F: FnOnce(Pos, Pos) -> R>(self, map: F) -> R {
+        map(self.min, self.max)
+    }
+
+            // if pos.x < self.max.x
+            // && pos.x >= self.min.x {
+            //     // Check y
+            //     let dtt = self.min.y - pos.y;
+            //     let dtb = pos.y - self.max.y;
+            //     dtt.min(dtb)
+            // } else if pos.y < self.max.y
+            // && pos.y >= self.max.y {
+            //     // Check x
+            //     let dtl = self.min.x - pos.x;
+            //     let dtr = pos.x - self.min.x;
+            //     dtl.min(dtr)
+            // } else {
+
+            // }
+    pub fn sdf(self, pos: Pos) -> f32 {
+        #[cold]
+        #[inline(never)]
+        #[track_caller]
+        fn invalid(message: &'static str) -> ! {
+            panic!("Invalid Rect: {message}");
+        }
+        let ge_min_x = pos.x >= self.min.x;
+        let ge_min_y = pos.y >= self.min.y;
+        let lt_max_x = pos.x < self.max.x;
+        let lt_max_y = pos.y < self.max.y;
+        match (ge_min_x, lt_max_x, ge_min_y, lt_max_y) {
+            (true, true, true, true) => {
+                let dtl = self.min.x - pos.x;
+                let dtr = pos.x - self.max.x;
+                let dtt = self.min.y - pos.y;
+                let dtb = pos.y - self.max.y;
+                dtl.max(dtr).max(dtt).max(dtb)
+            },
+            // (ge_min_x, lt_max_x, ge_min_y, lt_max_y)
+            // Between left and right, greater than max.y
+            (true, true, true, false) => pos.y - self.max.y,
+            // (ge_min_x, lt_max_x, ge_min_y, lt_max_y)
+            // Between left and right, less than min.y
+            (true, true, false, true) => self.min.y - pos.y,
+            // (ge_min_x, lt_max_x, ge_min_y, lt_max_y)
+            (true, true, false, false) => invalid("min.y is greater than max.y"),
+            // (ge_min_x, lt_max_x, ge_min_y, lt_max_y)
+            // Between top and bottom, greater than max.x
+            (true, false, true, true) => pos.x - self.max.x,
+            // (ge_min_x, lt_max_x, ge_min_y, lt_max_y)
+            // Greater than max.x, greater than max.y (right_bottom corner)
+            (true, false, true, false) => self.right_bottom().distance(pos),
+            // (ge_min_x, lt_max_x, ge_min_y, lt_max_y)
+            // Greater than max.x, less than min.y (right_top corner)
+            (true, false, false, true) => self.right_top().distance(pos),
+            // (ge_min_x, lt_max_x, ge_min_y, lt_max_y)
+            (true, false, false, false) => invalid("min.y is greater than max.y"),
+            // (ge_min_x, lt_max_x, ge_min_y, lt_max_y)
+            // Less than min.x, between top and bottom.
+            (false, true, true, true) => self.min.x - pos.x,
+            // (ge_min_x, lt_max_x, ge_min_y, lt_max_y)
+            // Less than min.x, greater than max.y (left_bottom corner)
+            (false, true, true, false) => self.left_bottom().distance(pos),
+            // (ge_min_x, lt_max_x, ge_min_y, lt_max_y)
+            // Less than min.x, less than min.y (left_top corner)
+            (false, true, false, true) => self.left_top().distance(pos),
+            // (ge_min_x, lt_max_x, ge_min_y, lt_max_y)
+            (false, true, false, false) => invalid("min.y is greater than max.y"),
+            // (ge_min_x, lt_max_x, ge_min_y, lt_max_y)
+            (false, false, true, true) => invalid("min.x is greater than max.x"),
+            // (ge_min_x, lt_max_x, ge_min_y, lt_max_y)
+            (false, false, true, false) => invalid("min.x is greater than max.x"),
+            // (ge_min_x, lt_max_x, ge_min_y, lt_max_y)
+            (false, false, false, true) => invalid("min.x is greater than max.x"),
+            // (ge_min_x, lt_max_x, ge_min_y, lt_max_y)
+            (false, false, false, false) => invalid("min is greater than max"),
+        }
     }
 }
 

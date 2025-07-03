@@ -3,6 +3,7 @@ use crate::core::math::{
 };
 use super::size_impl::*;
 use super::dims_impl::*;
+use super::rect_impl::*;
 use std::ops::{
     Add, Sub,
     Mul, Div, Rem,
@@ -15,7 +16,7 @@ use std::borrow::{Borrow, BorrowMut};
 
 /// Represents a position in 2D space.
 #[repr(C)]
-#[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Pos {
     pub x: f32,
     pub y: f32,
@@ -53,6 +54,26 @@ impl Pos {
     pub fn from_angle(angle: f32) -> Self {
         let (sin, cos) = angle.sin_cos();
         Self { x: cos, y: sin }
+    }
+
+    #[inline]
+    pub const fn rect(self, size: Size) -> Rect {
+        Rect::from_min_size(self, size)
+    }
+
+    #[inline]
+    pub const fn centered_rect(self, size: Size) -> Rect {
+        Rect::centered(self, size)
+    }
+
+    #[inline]
+    pub const fn square(self, size: f32) -> Rect {
+        Rect::square_from_min_size(self, size)
+    }
+
+    #[inline]
+    pub const fn centered_square(self, size: f32) -> Rect {
+        Rect::centered_square(self, size)
     }
 
     #[inline]
@@ -124,7 +145,13 @@ impl Pos {
     }
 
     #[inline]
-    pub const fn negate(self) -> Self {
+    pub const fn negate(&mut self) {
+        self.x = -self.x;
+        self.y = -self.y;
+    }
+
+    #[inline]
+    pub const fn negated(self) -> Self {
         Self::new(-self.x, -self.y)
     }
 
@@ -181,10 +208,26 @@ impl Pos {
     }
 
     #[inline]
+    pub const fn min_max(self, rhs: Self) -> (Self, Self) {
+        (
+            self.min(rhs),
+            rhs.max(self),
+        )
+    }
+
+    #[inline]
     pub const fn lerp(self, other: Self, t: f32) -> Self {
         Self::new(
             lerp(self.x, other.x, t),
             lerp(self.y, other.y, t),
+        )
+    }
+
+    #[inline]
+    pub const fn mid_point(self, other: Self) -> Self {
+        Self::new(
+            self.x.midpoint(other.x),
+            self.y.midpoint(other.y),
         )
     }
 
@@ -287,6 +330,91 @@ impl Pos {
     pub fn fract(self) -> Self {
         Self::new(self.x.fract(), self.y.fract())
     }
+
+    #[inline]
+    pub fn map<R, F: FnOnce(f32, f32) -> R>(self, map: F) -> R {
+        map(self.x, self.y)
+    }
+
+    // Comparisons
+
+    /// Checks that `self.x < other.x` and `self.y < other.y`.
+    #[inline]
+    pub const fn lt(self, other: Pos) -> bool {
+        self.x < other.x && self.y < other.y
+    }
+
+    /// Checks that `self.x <= other.x` and `self.y <= other.y`.
+    #[inline]
+    pub const fn le(self, other: Pos) -> bool {
+        self.x <= other.x && self.y <= other.y
+    }
+
+    /// Checks that `self.x == other.x` and `self.y == other.y`.
+    #[inline]
+    pub const fn eq(self, other: Pos) -> bool {
+        self.x == other.x && self.y == other.y
+    }
+
+    /// Checks that `self.x >= other.x` and `self.y >= other.y`.
+    #[inline]
+    pub const fn ge(self, other: Pos) -> bool {
+        self.x >= other.x && self.y >= other.y
+    }
+
+    /// Checks that `self.x > other.x` and `self.y > other.y`.
+    #[inline]
+    pub const fn gt(self, other: Pos) -> bool {
+        self.x > other.x && self.y > other.y
+    }
+
+    #[inline]
+    pub const fn dims(self) -> Dims {
+        unsafe {
+            std::mem::transmute(self)
+        }
+    }
+
+    #[inline]
+    pub const fn from_dims(dims: Dims) -> Self {
+        unsafe {
+            std::mem::transmute(dims)
+        }
+    }
+}
+
+impl std::cmp::PartialOrd<Pos> for Pos {
+    fn ge(&self, other: &Pos) -> bool {
+        Pos::ge(*self, *other)
+    }
+
+    fn gt(&self, other: &Pos) -> bool {
+        Pos::gt(*self, *other)
+    }
+
+    fn le(&self, other: &Pos) -> bool {
+        Pos::le(*self, *other)
+    }
+
+    fn lt(&self, other: &Pos) -> bool {
+        Pos::lt(*self, *other)
+    }
+
+    fn partial_cmp(&self, other: &Pos) -> Option<std::cmp::Ordering> {
+        let lt = Pos::lt(*self, *other);
+        let gt = Pos::gt(*self, *other);
+        let eq = Pos::eq(*self, *other);
+        Some(match (lt, eq, gt) {
+            (true, true, true) => unreachable!(),
+            (true, true, false) => unreachable!(),
+            (true, false, true) => unreachable!(),
+            (true, false, false) => std::cmp::Ordering::Less,
+            (false, true, true) => unreachable!(),
+            (false, true, false) => std::cmp::Ordering::Equal,
+            (false, false, true) => std::cmp::Ordering::Greater,
+            (false, false, false) => return None,
+        })
+    }
 }
 
 impl Deref for Pos {
@@ -363,7 +491,7 @@ impl Neg for Pos {
     type Output = Pos;
     #[inline]
     fn neg(self) -> Self::Output {
-        self.negate()
+        self.negated()
     }
 }
 
