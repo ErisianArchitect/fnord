@@ -236,32 +236,32 @@ impl Size {
     #[inline]
     pub const fn add_margin(self, margin: Margin) -> Self {
         Self::new(
-            self.width + margin.x() as f32,
-            self.height + margin.y() as f32,
+            self.width + margin.x(),
+            self.height + margin.y(),
         )
     }
 
     #[inline]
     pub const fn sub_margin(self, margin: Margin) -> Self {
         Self::new(
-            self.width - margin.x() as f32,
-            self.height - margin.y() as f32,
+            self.width - margin.x(),
+            self.height - margin.y(),
         )
     }
 
     #[inline]
     pub const fn add_padding(self, padding: Padding) -> Self {
         Self::new(
-            self.width - padding.x() as f32,
-            self.height - padding.y() as f32,
+            self.width - padding.x(),
+            self.height - padding.y(),
         )
     }
 
     #[inline]
     pub const fn sub_padding(self, padding: Padding) -> Self {
         Self::new(
-            self.width + padding.x() as f32,
-            self.height + padding.y() as f32,
+            self.width + padding.x(),
+            self.height + padding.y(),
         )
     }
 

@@ -1,18 +1,10 @@
 use super::Padding;
+use super::Size;
 use crate::core::math::lerp;
 
 #[repr(C)]
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Margin {
-    pub left: i8,
-    pub top: i8,
-    pub right: i8,
-    pub bottom: i8,
-}
-
-#[repr(C)]
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
-pub struct Marginf {
+pub struct Margin {
     pub left: f32,
     pub top: f32,
     pub right: f32,
@@ -20,34 +12,32 @@ pub struct Marginf {
 }
 
 impl Margin {
-    pub const ZERO: Self = Margin::same(0);
-    pub const NEG_ONE: Self = Margin::same(-1);
-    pub const S1: Self = Margin::same(1);
-    pub const S2: Self = Margin::same(2);
-    pub const S3: Self = Margin::same(3);
-    pub const S4: Self = Margin::same(4);
-    pub const S5: Self = Margin::same(5);
-    pub const S6: Self = Margin::same(6);
-    pub const S8: Self = Margin::same(8);
-    pub const S10: Self = Margin::same(10);
-    pub const S15: Self = Margin::same(15);
-    pub const S16: Self = Margin::same(16);
-    pub const S18: Self = Margin::same(18);
-    pub const S20: Self = Margin::same(20);
-    pub const S22: Self = Margin::same(22);
-    pub const S24: Self = Margin::same(24);
-    pub const S25: Self = Margin::same(25);
-    pub const S28: Self = Margin::same(28);
-    pub const S32: Self = Margin::same(32);
-    pub const S40: Self = Margin::same(40);
-    pub const S50: Self = Margin::same(50);
-    pub const S75: Self = Margin::same(75);
-    pub const S100: Self = Margin::same(100);
-    pub const MIN: Self = Margin::same(i8::MIN);
-    pub const MAX: Self = Margin::same(i8::MAX);
+    pub const ZERO: Self = Margin::same(0.0);
+    pub const NEG_ONE: Self = Margin::same(-1.0);
+    pub const S1: Self = Margin::same(1.0);
+    pub const S2: Self = Margin::same(2.0);
+    pub const S3: Self = Margin::same(3.0);
+    pub const S4: Self = Margin::same(4.0);
+    pub const S5: Self = Margin::same(5.0);
+    pub const S6: Self = Margin::same(6.0);
+    pub const S8: Self = Margin::same(8.0);
+    pub const S10: Self = Margin::same(10.0);
+    pub const S15: Self = Margin::same(15.0);
+    pub const S16: Self = Margin::same(16.0);
+    pub const S18: Self = Margin::same(18.0);
+    pub const S20: Self = Margin::same(20.0);
+    pub const S22: Self = Margin::same(22.0);
+    pub const S24: Self = Margin::same(24.0);
+    pub const S25: Self = Margin::same(25.0);
+    pub const S28: Self = Margin::same(28.0);
+    pub const S32: Self = Margin::same(32.0);
+    pub const S40: Self = Margin::same(40.0);
+    pub const S50: Self = Margin::same(50.0);
+    pub const S75: Self = Margin::same(75.0);
+    pub const S100: Self = Margin::same(100.0);
 
     #[inline]
-    pub const fn new(left: i8, top: i8, right: i8, bottom: i8) -> Self {
+    pub const fn new(left: f32, top: f32, right: f32, bottom: f32) -> Self {
         Self {
             left, top,
             right, bottom,
@@ -55,7 +45,7 @@ impl Margin {
     }
 
     #[inline]
-    pub const fn same(all: i8) -> Self {
+    pub const fn same(all: f32) -> Self {
         Self {
             left: all,
             top: all,
@@ -65,7 +55,7 @@ impl Margin {
     }
 
     #[inline]
-    pub const fn symmetric(x: i8, y: i8) -> Self {
+    pub const fn symmetric(x: f32, y: f32) -> Self {
         Self {
             left: x,
             top: y,
@@ -75,23 +65,13 @@ impl Margin {
     }
 
     #[inline]
-    pub const fn x(self) -> i16 {
-        self.left as i16 + self.right as i16
+    pub const fn x(self) -> f32 {
+        self.left + self.right
     }
 
     #[inline]
-    pub const fn y(self) -> i16 {
-        self.top as i16 + self.bottom as i16
-    }
-
-    #[inline]
-    pub const fn to_marginf(self) -> Marginf {
-        Marginf {
-            left: self.left as f32,
-            top: self.top as f32,
-            right: self.right as f32,
-            bottom: self.bottom as f32,
-        }
+    pub const fn y(self) -> f32 {
+        self.top + self.bottom
     }
 
     #[inline]
@@ -131,10 +111,10 @@ impl Margin {
     #[inline]
     pub const fn lerp(self, other: Self, t: f32) -> Self {
         Self {
-            left: lerp(self.left as f32, other.left as f32, t) as i8,
-            top: lerp(self.top as f32, other.top as f32, t) as i8,
-            right: lerp(self.right as f32, other.right as f32, t) as i8,
-            bottom: lerp(self.bottom as f32, other.bottom as f32, t) as i8,
+            left: lerp(self.left, other.left, t),
+            top: lerp(self.top, other.top, t),
+            right: lerp(self.right, other.right, t),
+            bottom: lerp(self.bottom, other.bottom, t),
         }
     }
 
@@ -144,23 +124,8 @@ impl Margin {
     }
 
     #[inline]
-    pub const fn leftf(self) -> f32 {
-        self.left as f32
-    }
-
-    #[inline]
-    pub const fn topf(self) -> f32 {
-        self.top as f32
-    }
-
-    #[inline]
-    pub const fn rightf(self) -> f32 {
-        self.right as f32
-    }
-
-    #[inline]
-    pub const fn bottomf(self) -> f32 {
-        self.bottom as f32
+    pub const fn total_size(self) -> Size {
+        Size::new(self.x(), self.y())
     }
 }
 
