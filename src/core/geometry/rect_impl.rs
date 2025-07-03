@@ -508,11 +508,9 @@ impl Rect {
     }
 
     #[inline]
-    pub const fn translate(self, offset: Pos) -> Self {
-        Self {
-            min: Pos::new(self.min.x + offset.x, self.min.y + offset.y),
-            max: Pos::new(self.max.x + offset.x, self.max.y + offset.y),
-        }
+    pub const fn translate(&mut self, offset: Pos) {
+        self.min = Pos::new(self.min.x + offset.x, self.min.y + offset.y);
+        self.max = Pos::new(self.max.x + offset.x, self.max.y + offset.y);
     }
 
     #[inline]
@@ -999,21 +997,6 @@ impl Rect {
         map(self.min, self.max)
     }
 
-            // if pos.x < self.max.x
-            // && pos.x >= self.min.x {
-            //     // Check y
-            //     let dtt = self.min.y - pos.y;
-            //     let dtb = pos.y - self.max.y;
-            //     dtt.min(dtb)
-            // } else if pos.y < self.max.y
-            // && pos.y >= self.max.y {
-            //     // Check x
-            //     let dtl = self.min.x - pos.x;
-            //     let dtr = pos.x - self.min.x;
-            //     dtl.min(dtr)
-            // } else {
-
-            // }
     pub fn sdf(self, pos: Pos) -> f32 {
         #[cold]
         #[inline(never)]
@@ -1104,5 +1087,46 @@ impl std::ops::Sub<Padding> for Rect {
     #[inline]
     fn sub(self, rhs: Padding) -> Self::Output {
         self.sub_padding(rhs)
+    }
+}
+
+impl std::ops::Add<Pos> for Rect {
+    type Output = Rect;
+    #[inline]
+    fn add(self, rhs: Pos) -> Self::Output {
+        self.add_offset(rhs)
+    }
+}
+
+impl std::ops::Sub<Pos> for Rect {
+    type Output = Rect;
+    #[inline]
+    fn sub(self, rhs: Pos) -> Self::Output {
+        self.sub_offset(rhs)
+    }
+}
+
+impl std::ops::AddAssign<Pos> for Rect {
+    fn add_assign(&mut self, rhs: Pos) {
+        self.translate(rhs)
+    }
+}
+
+impl std::ops::SubAssign<Pos> for Rect {
+    fn sub_assign(&mut self, rhs: Pos) {
+        self.min = Pos::new(self.min.x - rhs.x, self.min.y - rhs.y);
+        self.max = Pos::new(self.max.x - rhs.x, self.max.y - rhs.y);
+    }
+}
+
+impl std::ops::AddAssign<Size> for Rect {
+    fn add_assign(&mut self, rhs: Size) {
+        self.max = self.max.add_dims(rhs.width, rhs.height)
+    }
+}
+
+impl std::ops::SubAssign<Size> for Rect {
+    fn sub_assign(&mut self, rhs: Size) {
+        self.max = self.max.sub_dims(rhs.width, rhs.height)
     }
 }
