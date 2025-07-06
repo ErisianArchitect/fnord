@@ -2065,20 +2065,18 @@ impl Rect {
         let size = self.size();
         let cell_width = size.width / cols as f32;
         let cell_height = size.height / rows as f32;
-        let inner_rect = rect.sub_offset(self.min);
-        let cell_min = inner_rect.min
+        let inner_min = rect.min.sub(self.min);
+        let cell_min = inner_min
             .div_dims(cell_width, cell_height)
-            .to_ituple();
-        let cell_max = inner_rect.max
-            .div_dims(cell_width, cell_height)
-            .to_ituple();
-        if cell_min != cell_max {
-            return Some(self);
+            .floor()
+            .mul_dims(cell_width, cell_height)
+            .add(self.min);
+        let cell = Rect::from_min_size(cell_min, Size::new(cell_width, cell_height));
+        if cell.contains_rect(rect) {
+            Some(cell)
+        } else {
+            None
         }
-        let min = Pos::new(cell_min.0 as f32 * cell_width, cell_min.1 as f32 * cell_height);
-        let max = min.add_dims(cell_width, cell_height);
-        Some(Self::from_min_max(min, max))
-        
     }
 
     #[must_use]
