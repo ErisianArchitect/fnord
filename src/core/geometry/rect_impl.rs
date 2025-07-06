@@ -2068,11 +2068,9 @@ impl Rect {
         let inner_rect = rect.sub_offset(self.min);
         let cell_min = inner_rect.min
             .div_dims(cell_width, cell_height)
-            .floor()
             .to_ituple();
         let cell_max = inner_rect.max
             .div_dims(cell_width, cell_height)
-            .floor()
             .to_ituple();
         if cell_min != cell_max {
             return Some(self);
