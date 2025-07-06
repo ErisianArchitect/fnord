@@ -1093,7 +1093,7 @@ impl Pos {
     #[inline]
     pub fn axial(self) -> Axial {
         let theta = self.angle();
-        let quadrant = (((theta + FRAC_PI_4) / FRAC_PI_2).floor() as u8) & 0b11;
+        let quadrant = ((normalize_angle(theta + FRAC_PI_4) / FRAC_PI_2).floor() as u8) & 0b11;
         unsafe {
             std::mem::transmute(quadrant)
         }
