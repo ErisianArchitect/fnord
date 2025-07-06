@@ -2075,7 +2075,7 @@ impl Rect {
             .floor()
             .to_ituple();
         if cell_min != cell_max {
-            return None;
+            return Some(self);
         }
         let min = Pos::new(cell_min.0 as f32 * cell_width, cell_min.1 as f32 * cell_height);
         let max = min.add_dims(cell_width, cell_height);
