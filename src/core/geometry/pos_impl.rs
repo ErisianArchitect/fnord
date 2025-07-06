@@ -1082,7 +1082,7 @@ impl Pos {
     #[must_use]
     #[inline]
     pub fn cardinal(self) -> Cardinal {
-        let theta = self.normalized_angle();
+        let theta = self.angle();
         let octant = ((normalize_angle(theta + FRAC_PI_8) / FRAC_PI_4).floor() as u8) & 0b111;
         unsafe {
             std::mem::transmute(octant)
