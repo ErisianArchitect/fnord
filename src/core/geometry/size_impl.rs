@@ -269,6 +269,11 @@ impl Size {
     pub fn map<R, F: FnOnce(f32, f32) -> R>(self, map: F) -> R {
         map(self.width, self.height)
     }
+
+    #[inline]
+    pub fn test<P: FnOnce(f32, f32) -> bool>(self, pred: P) -> bool {
+        pred(self.width, self.height)
+    }
 }
 
 impl Deref for Size {
