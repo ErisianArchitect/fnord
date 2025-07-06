@@ -25,23 +25,30 @@ pub struct Pos {
     pub y: f32,
 }
 
+#[must_use]
 #[inline]
 pub const fn pos(x: f32, y: f32) -> Pos {
     Pos { x, y }
 }
 
 impl Pos {
-    pub const ZERO:        Self = Self::new(0.0, 0.0);
-    pub const NEG_HALF:    Self = Self::new(-0.5, -0.5);
-    pub const HALF:        Self = Self::new(0.5, 0.5);
-    pub const NEG_ONE:     Self = Self::new(-1.0, -1.0);
-    pub const ONE:         Self = Self::new(1.0, 1.0);
-    pub const NEG_X:       Self = Self::new(-1.0, 0.0);
-    pub const X:           Self = Self::new(1.0, 0.0);
-    pub const NEG_Y:       Self = Self::new(0.0, -1.0);
-    pub const Y:           Self = Self::new(0.0, 1.0);
-    pub const NEG_X_POS_Y: Self = Self::new(-1.0, 1.0);
-    pub const POS_X_NEG_Y: Self = Self::new(1.0, -1.0);
+    pub const ZERO:         Self = Self::new(0.0, 0.0);
+    pub const NEG_HALF:     Self = Self::new(-0.5, -0.5);
+    pub const HALF:         Self = Self::new(0.5, 0.5);
+    pub const NEG_ONE:      Self = Self::new(-1.0, -1.0);
+    pub const ONE:          Self = Self::new(1.0, 1.0);
+    pub const NEG_X:        Self = Self::new(-1.0, 0.0);
+    pub const X:            Self = Self::new(1.0, 0.0);
+    pub const NEG_Y:        Self = Self::new(0.0, -1.0);
+    pub const Y:            Self = Self::new(0.0, 1.0);
+    pub const NEG_HALF_X:   Self = Self::new(-0.5, 0.0);
+    pub const HALF_X:       Self = Self::new(0.5, 0.0);
+    pub const NEG_HALF_Y:   Self = Self::new(0.0, -0.5);
+    pub const HALF_Y:       Self = Self::new(0.0, 0.5);
+    pub const NEG_X_POS_Y:  Self = Self::new(-1.0, 1.0);
+    pub const POS_X_NEG_Y:  Self = Self::new(1.0, -1.0);
+    pub const HALF_NEG_X_POS_Y: Self = Self::new(0.5, -0.5);
+    pub const HALF_POS_X_NEG_Y: Self = Self::new(-0.5, 0.5);
 
     #[must_use]
     #[inline]
@@ -59,7 +66,7 @@ impl Pos {
     #[inline]
     pub fn from_angle(angle: f32) -> Self {
         let (sin, cos) = angle.sin_cos();
-        Self { x: cos, y: sin }
+        Self { x: cos, y: -sin }
     }
 
     #[must_use]
