@@ -1526,18 +1526,6 @@ impl Rect {
         Self::centered_square(self.anchor(anchor), size)
     }
 
-    /// Recturns the smallest [Rect] that contains both [Rect]s.
-    pub const fn combine(self, other: Rect) -> Self {
-        let min_x = self.min.x.min(other.min.x);
-        let min_y = self.min.y.min(other.min.y);
-        let max_x = self.max.x.max(other.max.x);
-        let max_y = self.max.y.max(other.max.y);
-        Self {
-            min: Pos::new(min_x, min_y),
-            max: Pos::new(max_x, max_y),
-        }
-    }
-
     #[inline]
     pub const fn aspect_ratio(self) -> f32 {
         // divide by width by aspect ratio to get height
@@ -2020,11 +2008,53 @@ impl Rect {
     }
 
     /// Extends the bounds of self so that `rect` fits inside exactly.
+    #[inline]
     pub const fn extend_to_fit(&mut self, rect: Rect) {
         self.min.x = self.min.x.min(rect.min.x);
         self.min.y = self.min.y.min(rect.min.y);
         self.max.x = self.max.x.max(rect.max.x);
         self.max.y = self.max.y.max(rect.max.y);
+    }
+
+    #[must_use]
+    #[inline]
+    pub const fn extended_to_fit(mut self, rect: Rect) -> Self {
+        self.extend_to_fit(rect);
+        self
+    }
+
+    /// Gets the smallest [Rect] that can contain all `rects`.
+    /// 
+    /// Returns [Rect::ZERO] if the slice is empty.
+    #[must_use]
+    pub const fn min_rect(rects: &[Self]) -> Self {
+        let Some((min_rect, rects)) = rects.split_first() else {
+            return Rect::ZERO;
+        };
+        let mut min_rect = *min_rect;
+        let mut index = 0;
+        while index < rects.len() {
+            min_rect.extend_to_fit(rects[index]);
+            index += 1;
+        }
+        min_rect
+    }
+
+    #[must_use]
+    pub fn subdivision_containing(self, pos: Pos, cols: u32, rows: u32) -> Option<Rect> {
+        if !self.contains(pos) || cols == 0 || rows == 0 {
+            return None;
+        }
+        let size = self.size();
+        let cell_width = size.width / cols as f32;
+        let cell_height = size.height / rows as f32;
+        let inner_pos = pos.sub(self.min);
+        let cell_min = inner_pos
+            .div_dims(cell_width, cell_height)
+            .floor()
+            .mul_dims(cell_width, cell_height)
+            .add(self.min);
+        Some(Rect::from_min_size(cell_min, Size::new(cell_width, cell_height)))
     }
 }
 

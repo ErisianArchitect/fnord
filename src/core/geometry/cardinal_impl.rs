@@ -1,3 +1,5 @@
+use crate::core::geometry::Anchor;
+
 
 /// Represents the eight directions on a compass.
 #[repr(u8)]
@@ -59,6 +61,21 @@ impl Cardinal {
             Cardinal::Sw => Cardinal::Ne,
             Cardinal::S => Cardinal::N,
             Cardinal::Se => Cardinal::Nw,
+        }
+    }
+
+    #[must_use]
+    #[inline]
+    pub const fn anchor(self) -> Anchor {
+        match self {
+            Cardinal::E => Anchor::RightCenter,
+            Cardinal::Ne => Anchor::RightTop,
+            Cardinal::N => Anchor::TopCenter,
+            Cardinal::Nw => Anchor::LeftTop,
+            Cardinal::W => Anchor::LeftCenter,
+            Cardinal::Sw => Anchor::LeftBottom,
+            Cardinal::S => Anchor::BottomCenter,
+            Cardinal::Se => Anchor::RightBottom,
         }
     }
 
