@@ -66,6 +66,7 @@ impl Pos {
     #[inline]
     pub fn from_angle(angle: f32) -> Self {
         let (sin, cos) = angle.sin_cos();
+        // y down system means -sin.
         Self { x: cos, y: -sin }
     }
 
@@ -154,6 +155,21 @@ impl Pos {
     #[inline]
     pub fn length(self) -> f32 {
         self.length_squared().sqrt()
+    }
+
+    #[inline]
+    pub fn set_length(&mut self, length: f32) {
+        let cur_length = self.length();
+        let mult = length / cur_length;
+        self.x *= mult;
+        self.y *= mult;
+    }
+
+    #[must_use]
+    #[inline]
+    pub fn with_length(mut self, length: f32) -> Self {
+        self.set_length(length);
+        self
     }
 
     #[inline]
@@ -368,6 +384,7 @@ impl Pos {
         )
     }
 
+    /// Returns `(min, max)`.
     #[inline]
     pub const fn min_max(self, rhs: Self) -> (Self, Self) {
         (
@@ -427,7 +444,7 @@ impl Pos {
     }
 
     #[inline]
-    pub fn abs(self) -> Self {
+    pub const fn abs(self) -> Self {
         Self::new(
             self.x.abs(),
             self.y.abs()
@@ -444,19 +461,19 @@ impl Pos {
 
     #[must_use]
     #[inline]
-    pub const fn copysign(self, sign: Pos) -> Self {
+    pub const fn copysign(self, sign: f32) -> Self {
         Self::new(
-            self.x.copysign(sign.x),
-            self.y.copysign(sign.y)
+            self.x.copysign(sign),
+            self.y.copysign(sign)
         )
     }
 
     #[must_use]
     #[inline]
-    pub const fn copysign2(self, sign: f32) -> Self {
+    pub const fn copysign2(self, sign: Pos) -> Self {
         Self::new(
-            self.x.copysign(sign),
-            self.y.copysign(sign)
+            self.x.copysign(sign.x),
+            self.y.copysign(sign.y)
         )
     }
 
@@ -520,6 +537,15 @@ impl Pos {
         Self::new(
             self.x.next_up(),
             self.y.next_up()
+        )
+    }
+
+    #[must_use]
+    #[inline]
+    pub fn next_down(self) -> Self {
+        Self::new(
+            self.x.next_down(),
+            self.y.next_down()
         )
     }
 
@@ -875,15 +901,6 @@ impl Pos {
         )
     }
 
-    #[must_use]
-    #[inline]
-    pub fn next_down(self) -> Self {
-        Self::new(
-            self.x.next_down(),
-            self.y.next_down()
-        )
-    }
-
     #[inline]
     pub const fn lerp(self, other: Self, t: f32) -> Self {
         Self::new(
@@ -925,6 +942,15 @@ impl Pos {
     #[inline]
     pub const fn clamp_uv(self) -> Self {
         Self::clamp_both(self, 0.0, 1.0)
+    }
+
+    #[must_use]
+    #[inline]
+    pub fn wrap_uv(self) -> Self {
+        Self::new(
+            self.x.rem_euclid(1.0),
+            self.y.rem_euclid(1.0),
+        )
     }
 
     #[inline]
@@ -989,8 +1015,14 @@ impl Pos {
 
     #[must_use]
     #[inline]
-    pub fn map_each<X: FnOnce(f32) -> f32, Y: FnOnce(f32) -> f32>(self, x: X, y: Y) -> Self {
+    pub fn map_xy<X: FnOnce(f32) -> f32, Y: FnOnce(f32) -> f32>(self, x: X, y: Y) -> Self {
         Self::new(x(self.x), y(self.y))
+    }
+
+    #[must_use]
+    #[inline]
+    pub fn map_xy_each<F: Fn(f32) -> f32>(self, f: F) -> Self {
+        Self::new(f(self.x), f(self.y))
     }
 
     // Comparisons
