@@ -342,6 +342,18 @@ impl Pos {
         Self::new(x, y)
     }
 
+    #[must_use]
+    #[inline]
+    pub const fn to_ituple(self) -> (i32, i32) {
+        (self.x as _, self.y as _)
+    }
+
+    #[must_use]
+    #[inline]
+    pub const fn from_ituple((x, y): (i32, i32)) -> Self {
+        Self::new(x as _, y as _)
+    }
+
     #[inline]
     pub const fn to_array(self) -> [f32; 2] {
         [self.x, self.y]

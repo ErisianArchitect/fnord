@@ -2029,7 +2029,7 @@ impl Rect {
     #[must_use]
     pub const fn min_rect(rects: &[Self]) -> Self {
         let Some((min_rect, rects)) = rects.split_first() else {
-            return Rect::ZERO;
+            return Self::ZERO;
         };
         let mut min_rect = *min_rect;
         let mut index = 0;
@@ -2041,7 +2041,7 @@ impl Rect {
     }
 
     #[must_use]
-    pub fn subdivision_containing(self, pos: Pos, cols: u32, rows: u32) -> Option<Rect> {
+    pub fn subdivision_containing(self, pos: Pos, cols: u32, rows: u32) -> Option<Self> {
         if !self.contains(pos) || cols == 0 || rows == 0 {
             return None;
         }
@@ -2054,7 +2054,74 @@ impl Rect {
             .floor()
             .mul_dims(cell_width, cell_height)
             .add(self.min);
-        Some(Rect::from_min_size(cell_min, Size::new(cell_width, cell_height)))
+        Some(Self::from_min_size(cell_min, Size::new(cell_width, cell_height)))
+    }
+
+    #[must_use]
+    pub fn subdivision_containing_rect(self, rect: Self, cols: u32, rows: u32) -> Option<Self> {
+        if !self.contains_rect(rect) {
+            return None;
+        }
+        let size = self.size();
+        let cell_width = size.width / cols as f32;
+        let cell_height = size.height / rows as f32;
+        let inner_rect = rect.sub_offset(self.min);
+        let cell_min = inner_rect.min
+            .div_dims(cell_width, cell_height)
+            .floor()
+            .to_ituple();
+        let cell_max = inner_rect.max
+            .div_dims(cell_width, cell_height)
+            .floor()
+            .to_ituple();
+        if cell_min != cell_max {
+            return None;
+        }
+        let min = Pos::new(cell_min.0 as f32 * cell_width, cell_min.1 as f32 * cell_height);
+        let max = min.add_dims(cell_width, cell_height);
+        Some(Self::from_min_max(min, max))
+        
+    }
+
+    #[must_use]
+    pub fn floor(self) -> Self {
+        Self::from_min_max(
+            self.min.floor(),
+            self.max.floor()
+        )
+    }
+
+    #[must_use]
+    pub fn ceil(self) -> Self {
+        Self::from_min_max(
+            self.min.ceil(),
+            self.max.ceil()
+        )
+    }
+
+    /// Floors the min bound and ceils the max bound.
+    #[must_use]
+    pub fn floor_ceil(self) -> Self {
+        Self::from_min_max(
+            self.min.floor(),
+            self.max.ceil()
+        )
+    }
+
+    #[must_use]
+    pub fn ceil_floor(self) -> Self {
+        Self::from_min_max(
+            self.min.ceil(),
+            self.max.floor()
+        )
+    }
+
+    #[must_use]
+    pub fn round(self) -> Self {
+        Self::from_min_max(
+            self.min.round(),
+            self.max.round()
+        )
     }
 }
 
