@@ -10,6 +10,10 @@ mod margin_impl;
 mod padding_impl;
 mod util_impl;
 mod dims_impl;
+mod nine_slice_impl;
+mod quadtree_impl;
+mod cardinal_impl;
+mod direction_impl;
 // imports
 pub use align_impl::*;
 pub use size_impl::*;
@@ -22,3 +26,7 @@ pub use margin_impl::*;
 pub use padding_impl::*;
 pub use util_impl::*;
 pub use dims_impl::*;
+pub use nine_slice_impl::*;
+pub use quadtree_impl::*;
+pub use cardinal_impl::*;
+pub use direction_impl::*;
