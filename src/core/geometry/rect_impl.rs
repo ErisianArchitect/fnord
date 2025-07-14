@@ -1561,9 +1561,9 @@ impl Rect {
         let mar = msize.aspect_ratio();
         // mar.ratio >= 1.0 means width is greater or equal to height.
         let new_size = if mar.ratio >= 1.0 {
-            Size::new(aspect_ratio.width_from_height(msize.height), msize.height)
-        } else {
             Size::new(msize.width, aspect_ratio.height_from_width(msize.width))
+        } else {
+            Size::new(aspect_ratio.width_from_height(msize.height), msize.height)
         };
         Rect::centered(self.center(), new_size)
     }
