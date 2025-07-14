@@ -1556,17 +1556,15 @@ impl Rect {
         Rect::centered(self.center(), new_size)
     }
 
-    pub const fn scale_middle(self, size: Size) -> Self {
+    pub const fn scale_middle(self, aspect_ratio: AspectRatio) -> Self {
         let msize = self.size();
         let mar = msize.aspect_ratio();
-        let square_size = size.min_dims();
-        let scale_by = if mar.ratio >= 1.0 {
-            msize.height
+        // mar.ratio >= 1.0 means width is greater or equal to height.
+        let new_size = if mar.ratio >= 1.0 {
+            Size::new(aspect_ratio.width_from_height(msize.height), msize.height)
         } else {
-            msize.width
+            Size::new(msize.width, aspect_ratio.height_from_width(msize.width))
         };
-        let scalar = scale_by / square_size;
-        let new_size = size.scale(scalar);
         Rect::centered(self.center(), new_size)
     }
 
