@@ -1,7 +1,7 @@
 use std::{borrow::{Borrow, BorrowMut}, ops::{
     Add, Deref, DerefMut, Div, Index, IndexMut, Mul, Neg, Rem, Sub
 }};
-use crate::core::geometry::dims_impl::Dims;
+use crate::core::geometry::{dims_impl::Dims, AspectRatio};
 use super::margin_impl::Margin;
 use super::padding_impl::Padding;
 use crate::core::math::{
@@ -149,8 +149,8 @@ impl Size {
     }
 
     #[inline]
-    pub const fn aspect_ratio(self) -> f32 {
-        self.width / self.height
+    pub const fn aspect_ratio(self) -> AspectRatio {
+        AspectRatio::from_dims(self.width, self.height)
     }
 
     #[inline]

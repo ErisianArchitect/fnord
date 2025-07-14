@@ -1,5 +1,6 @@
 use crate::core::geometry::is_positive;
 use crate::core::geometry::util_impl::half;
+use crate::core::geometry::AspectRatio;
 use crate::core::geometry::Intercardinal;
 use crate::core::math::lerp;
 
@@ -1142,6 +1143,8 @@ impl Rect {
     }
 
     /// Adds the [Margin] to the rect while maintaining the min bound.
+    /// 
+    /// What you likely want to use is `add_margin_anchored`, which keeps the rect anchored while adding the margin.
     #[inline]
     pub const fn add_margin(self, margin: Margin) -> Self {
         Self::from_min_max(
@@ -1166,6 +1169,7 @@ impl Rect {
 
     #[inline]
     pub const fn add_margin_anchored(self, margin: Margin, anchor: Anchor) -> Self {
+        // TODO: Write custom implementation so you don't have to use anchor() and from_anchored_pivot()
         let pivot = self.anchor(anchor);
         let new_size = self.size().add_margin(margin);
         Self::from_anchored_pivot(anchor, pivot, new_size)
@@ -1181,6 +1185,9 @@ impl Rect {
         )
     }
 
+    /// Subtracts the [Margin] while keeping the min bound in the same place.
+    /// 
+    /// What you likely want is `sub_margin_anchored`, which keeps the rect anchored while subtracting the margin.
     #[inline]
     pub const fn sub_margin(self, margin: Margin) -> Self {
         Self::from_min_max(
@@ -1205,6 +1212,7 @@ impl Rect {
 
     #[inline]
     pub const fn sub_margin_anchored(self, margin: Margin, anchor: Anchor) -> Self {
+        // TODO: Write custom implementation so you don't have to use anchor() and from_anchored_pivot()
         let pivot = self.anchor(anchor);
         let new_size = self.size().sub_margin(margin);
         Self::from_anchored_pivot(anchor, pivot, new_size)
@@ -1526,26 +1534,25 @@ impl Rect {
         Self::centered_square(self.anchor(anchor), size)
     }
 
+    #[must_use]
     #[inline]
-    pub const fn aspect_ratio(self) -> f32 {
+    pub const fn aspect_ratio(self) -> AspectRatio {
         // divide by width by aspect ratio to get height
         // multiply height by aspect ratio to get width
-        self.width() / self.height()
+        AspectRatio::from_dims(self.width(), self.height())
     }
 
     /// Returns a rect inside of `self` that fits perfectly in the center
     /// by scaling `size`.
-    pub const fn scale_inside(self, size: Size) -> Self {
+    pub const fn scale_inside(self, aspect_ratio: AspectRatio) -> Self {
         // determine which scaling method must be used.
         let msize = self.size();
         let mar = msize.aspect_ratio();
-        let rar = size.aspect_ratio();
-        let scalar = if mar >= rar {
-            msize.height / size.height
+        let new_size = if mar.ratio >= aspect_ratio.ratio {
+            Size::new(aspect_ratio.width_from_height(msize.height), msize.height)
         } else {
-            msize.width / size.width
+            Size::new(msize.width, aspect_ratio.height_from_width(msize.width))
         };
-        let new_size = size.scale(scalar);
         Rect::centered(self.center(), new_size)
     }
 
@@ -1553,7 +1560,7 @@ impl Rect {
         let msize = self.size();
         let mar = msize.aspect_ratio();
         let square_size = size.min_dims();
-        let scale_by = if mar >= 1.0 {
+        let scale_by = if mar.ratio >= 1.0 {
             msize.height
         } else {
             msize.width
@@ -1570,12 +1577,11 @@ impl Rect {
         let msize = self.size();
         let mar = msize.aspect_ratio();
         let rar = size.aspect_ratio();
-        let scalar = if mar >= rar {
-            msize.width / size.width
+        let new_size = if mar.ratio >= rar.ratio {
+            Size::new(msize.width, rar.height_from_width(msize.width))
         } else {
-            msize.height / size.height
+            Size::new(rar.width_from_height(msize.height), msize.height)
         };
-        let new_size = size.scale(scalar);
         Rect::centered(self.center(), new_size)
     }
 
@@ -1738,35 +1744,41 @@ impl Rect {
         }
     }
 
-    /// Effectively swaps the width and height, lefting the min at the same location.
-    #[inline]
-    pub const fn swapped_lengths(self) -> Self {
-        Self::from_min_size(self.min, self.size().swap_dims())
-    }
-
+    /// Effectively swaps the width and height, leaving the min at the same location.
     #[inline]
     pub const fn swap_lengths(&mut self) {
         self.set_size(self.size().swap_dims());
     }
 
+    #[must_use]
     #[inline]
-    pub const fn centered_swapped_length(self) -> Self {
-        Self::centered(self.center(), self.size().swap_dims())
+    pub const fn with_swapped_lengths(mut self) -> Self {
+        self.swap_lengths();
+        self
     }
 
     #[inline]
-    pub const fn centered_swap_lengths(&mut self) {
+    pub const fn swap_lengths_centered(&mut self) {
         self.set_size_centered(self.size().swap_dims());
     }
 
+    #[must_use]
     #[inline]
-    pub const fn anchored_swapped_lengths(self, anchor: Anchor) -> Self {
-        Self::from_anchored_pivot(anchor, self.anchor(anchor), self.size().swap_dims())
+    pub const fn with_swapped_lengths_centered(mut self) -> Self {
+        self.swap_lengths_centered();
+        self
     }
 
     #[inline]
-    pub const fn anchored_swap_lengths(&mut self, anchor: Anchor) {
+    pub const fn swap_lengths_anchored(&mut self, anchor: Anchor) {
         *self = Self::from_anchored_pivot(anchor, self.anchor(anchor), self.size().swap_dims());
+    }
+
+    #[must_use]
+    #[inline]
+    pub const fn with_swapped_lengths_anchored(mut self, anchor: Anchor) -> Self {
+        self.swap_lengths_anchored(anchor);
+        self
     }
 
     /// Returns `(left, right)`
@@ -1803,9 +1815,10 @@ impl Rect {
         )
     }
 
+    /// Subdivide the Rect into four quadrants.
     #[must_use]
     #[inline]
-    pub const fn into_quadrants(self) -> QuadSubdivide<Self> {
+    pub const fn subdivide_quad(self) -> QuadSubdivide<Self> {
         let mid_x = self.min.x.midpoint(self.max.x);
         let mid_y = self.min.y.midpoint(self.max.y);
         let mid = Pos::new(mid_x, mid_y);
@@ -1835,18 +1848,21 @@ impl Rect {
         }
     }
 
+    /// Get the hypotenuse (the distance between opposite corners).
     #[must_use]
     #[inline]
     pub fn hypotenuse(self) -> f32 {
         self.min.distance(self.max)
     }
 
+    /// Get the hypotenuse (the distance between opposite corners) squared.
     #[must_use]
     #[inline]
     pub const fn hypotenuse_squared(self) -> f32 {
         self.min.distance_squared(self.max)
     }
 
+    /// Gets the corner vertex at the given [Intercardinal] direction.
     #[must_use]
     #[inline]
     pub const fn corner(self, corner: Intercardinal) -> Pos {
@@ -1908,28 +1924,29 @@ impl Rect {
     #[inline]
     pub const fn edge_midpoint(self, edge: Axial) -> Pos {
         match edge {
-            Axial::Left => self.left_center(),
-            Axial::Up => self.top_center(),
             Axial::Right => self.right_center(),
+            Axial::Up => self.top_center(),
+            Axial::Left => self.left_center(),
             Axial::Down => self.bottom_center(),
         }
     }
 
+    /// Get the edge vertices in clockwise order.
     #[must_use]
     #[inline]
     pub const fn edge_points_cw(self, edge: Axial) -> [Pos; 2] {
         match edge {
-            Axial::Left => [
-                self.left_bottom(),
-                self.left_top(),
+            Axial::Right => [
+                self.right_top(),
+                self.right_bottom(),
             ],
             Axial::Up => [
                 self.left_top(),
                 self.right_top(),
             ],
-            Axial::Right => [
-                self.right_top(),
-                self.right_bottom(),
+            Axial::Left => [
+                self.left_bottom(),
+                self.left_top(),
             ],
             Axial::Down => [
                 self.right_bottom(),
@@ -1938,14 +1955,11 @@ impl Rect {
         }
     }
 
+    /// Get the edge vertices in counter-clockwise order.
     #[must_use]
     #[inline]
     pub const fn edge_points_ccw(self, edge: Axial) -> [Pos; 2] {
         match edge {
-            Axial::Left => [
-                self.left_top(),
-                self.left_bottom(),
-            ],
             Axial::Up => [
                 self.right_top(),
                 self.left_top(),
@@ -1954,6 +1968,10 @@ impl Rect {
                 self.right_bottom(),
                 self.right_top(),
             ],
+            Axial::Left => [
+                self.left_top(),
+                self.left_bottom(),
+            ],
             Axial::Down => [
                 self.left_bottom(),
                 self.right_bottom(),
@@ -1961,21 +1979,22 @@ impl Rect {
         }
     }
 
+    /// Get the edge vertices ordered from min to max.
     #[must_use]
     #[inline]
     pub const fn edge_points_min_max(self, edge: Axial) -> [Pos; 2] {
         match edge {
-            Axial::Left => [
-                self.left_top(),
-                self.left_bottom(),
+            Axial::Right => [
+                self.right_top(),
+                self.right_bottom(),
             ],
             Axial::Up => [
                 self.left_top(),
                 self.right_top(),
             ],
-            Axial::Right => [
-                self.right_top(),
-                self.right_bottom(),
+            Axial::Left => [
+                self.left_top(),
+                self.left_bottom(),
             ],
             Axial::Down => [
                 self.left_bottom(),
@@ -1984,21 +2003,22 @@ impl Rect {
         }
     }
 
+    /// Get the edge vertices ordered from max to min.
     #[must_use]
     #[inline]
     pub const fn edge_points_max_min(self, edge: Axial) -> [Pos; 2] {
         match edge {
-            Axial::Left => [
-                self.left_bottom(),
-                self.left_top(),
+            Axial::Right => [
+                self.right_bottom(),
+                self.right_top(),
             ],
             Axial::Up => [
                 self.right_top(),
                 self.left_top(),
             ],
-            Axial::Right => [
-                self.right_bottom(),
-                self.right_top(),
+            Axial::Left => [
+                self.left_bottom(),
+                self.left_top(),
             ],
             Axial::Down => [
                 self.right_bottom(),
@@ -2040,6 +2060,7 @@ impl Rect {
         min_rect
     }
 
+    // Containing Pos
     #[must_use]
     pub fn subdivision_containing(self, pos: Pos, cols: u32, rows: u32) -> Option<Self> {
         if !self.contains(pos) || cols == 0 || rows == 0 {
@@ -2057,6 +2078,30 @@ impl Rect {
         Some(Self::from_min_size(cell_min, Size::new(cell_width, cell_height)))
     }
 
+    // Containing Pos
+    #[must_use]
+    pub fn subdivision_containing_with_coord(self, pos: Pos, cols: u32, rows: u32) -> Option<((u32, u32), Self)> {
+        if cols == 0 || rows == 0 || !self.contains(pos) {
+            return None;
+        }
+        let size = self.size();
+        let cell_width = size.width / cols as f32;
+        let cell_height = size.height / rows as f32;
+        let inner_pos = pos.sub(self.min);
+        let cell_min_coord = inner_pos
+            .div_dims(cell_width, cell_height)
+            .floor();
+        let cell_min = cell_min_coord.mul_dims(cell_width, cell_height).add(self.min);
+        let cell_coord = (cell_min_coord.x as u32, cell_min_coord.y as u32);
+            // .mul_dims(cell_width, cell_height)
+            // .add(self.min);
+        Some((
+            cell_coord,
+            Self::from_min_size(cell_min, Size::new(cell_width, cell_height)),
+        ))
+    }
+
+    // Containing Rect
     #[must_use]
     pub fn subdivision_containing_rect(self, rect: Self, cols: u32, rows: u32) -> Option<Self> {
         if !self.contains_rect(rect) {
@@ -2074,6 +2119,31 @@ impl Rect {
         let cell = Rect::from_min_size(cell_min, Size::new(cell_width, cell_height));
         if cell.contains_rect(rect) {
             Some(cell)
+        } else {
+            None
+        }
+    }
+
+    // Containing Rect
+    #[must_use]
+    pub fn subdivision_containing_rect_with_coord(self, rect: Self, cols: u32, rows: u32) -> Option<((u32, u32), Self)> {
+        if !self.contains_rect(rect) {
+            return None;
+        }
+        let size = self.size();
+        let cell_width = size.width / cols as f32;
+        let cell_height = size.height / rows as f32;
+        let inner_min = rect.min.sub(self.min);
+        let cell_min_coord = inner_min
+            .div_dims(cell_width, cell_height)
+            .floor();
+            // .mul_dims(cell_width, cell_height)
+            // .add(self.min);
+        let cell_min = cell_min_coord.mul_dims(cell_width, cell_height).add(self.min);
+        let cell = Rect::from_min_size(cell_min, Size::new(cell_width, cell_height));
+        if cell.contains_rect(rect) {
+            let cell_coord = (cell_min.x as u32, cell_min.y as u32);
+            Some((cell_coord, cell))
         } else {
             None
         }
@@ -2125,7 +2195,7 @@ impl std::ops::Add<Margin> for Rect {
     type Output = Rect;
     #[inline]
     fn add(self, rhs: Margin) -> Self::Output {
-        self.add_margin_centered(rhs)
+        self.add_margin(rhs)
     }
 }
 
@@ -2133,7 +2203,7 @@ impl std::ops::Sub<Margin> for Rect {
     type Output = Rect;
     #[inline]
     fn sub(self, rhs: Margin) -> Self::Output {
-        self.sub_margin_centered(rhs)
+        self.sub_margin(rhs)
     }
 }
 
@@ -2169,13 +2239,31 @@ impl std::ops::Sub<Pos> for Rect {
     }
 }
 
+impl std::ops::Add<Size> for Rect {
+    type Output = Rect;
+    #[inline]
+    fn add(self, rhs: Size) -> Self::Output {
+        self.add_size(rhs)
+    }
+}
+
+impl std::ops::Sub<Size> for Rect {
+    type Output = Rect;
+    #[inline]
+    fn sub(self, rhs: Size) -> Self::Output {
+        self.sub_size(rhs)
+    }
+}
+
 impl std::ops::AddAssign<Pos> for Rect {
+    #[inline]
     fn add_assign(&mut self, rhs: Pos) {
         self.translate(rhs)
     }
 }
 
 impl std::ops::SubAssign<Pos> for Rect {
+    #[inline]
     fn sub_assign(&mut self, rhs: Pos) {
         self.min = Pos::new(self.min.x - rhs.x, self.min.y - rhs.y);
         self.max = Pos::new(self.max.x - rhs.x, self.max.y - rhs.y);

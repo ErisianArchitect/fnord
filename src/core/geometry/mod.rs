@@ -14,6 +14,7 @@ mod nine_slice_impl;
 mod quadtree_impl;
 mod cardinal_impl;
 mod direction_impl;
+mod aspect_ratio_impl;
 // imports
 pub use align_impl::*;
 pub use size_impl::*;
@@ -30,3 +31,4 @@ pub use nine_slice_impl::*;
 pub use quadtree_impl::*;
 pub use cardinal_impl::*;
 pub use direction_impl::*;
+pub use aspect_ratio_impl::*;
