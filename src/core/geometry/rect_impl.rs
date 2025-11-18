@@ -103,6 +103,8 @@ pub struct Rect {
 }
 
 #[inline]
+#[must_use]
+#[cfg_attr(debug_assertions, track_caller)]
 pub const fn rect(x: f32, y: f32, width: f32, height: f32) -> Rect {
     debug_assert!(Size::new(width, height).is_positive());
     Rect {
@@ -122,6 +124,7 @@ impl Rect {
     /// - `min.y <= max.y`
     #[cfg_attr(debug_assertions, track_caller)]
     #[inline]
+    #[must_use]
     pub const fn from_min_max(min: Pos, max: Pos) -> Self {
         debug_assert!(min.le(max));
         Self {
@@ -137,6 +140,7 @@ impl Rect {
     /// - `height >= 0`
     #[cfg_attr(debug_assertions, track_caller)]
     #[inline]
+    #[must_use]
     pub const fn new(x: f32, y: f32, width: f32, height: f32) -> Self {
         debug_assert!(Size::new(width, height).is_positive());
         Self::from_min_max(
@@ -152,6 +156,7 @@ impl Rect {
     /// - `size.height >= 0`
     #[cfg_attr(debug_assertions, track_caller)]
     #[inline]
+    #[must_use]
     pub const fn from_min_size(min: Pos, size: Size) -> Self {
         debug_assert!(size.is_positive());
         Self::from_min_max(
@@ -166,6 +171,7 @@ impl Rect {
     /// - `side_length >= 0`
     #[cfg_attr(debug_assertions, track_caller)]
     #[inline]
+    #[must_use]
     pub const fn square_from_min_size(min: Pos, side_length: f32) -> Self {
         debug_assert!(is_positive(side_length));
         Self::from_min_max(
@@ -181,6 +187,7 @@ impl Rect {
     /// - `size.height >= 0`
     #[cfg_attr(debug_assertions, track_caller)]
     #[inline]
+    #[must_use]
     pub const fn centered(center: Pos, size: Size) -> Self {
         debug_assert!(size.is_positive());
         let half_size = size.mul_dims(0.5, 0.5);
@@ -196,6 +203,7 @@ impl Rect {
     /// - `side_length >= 0`
     #[cfg_attr(debug_assertions, track_caller)]
     #[inline]
+    #[must_use]
     pub const fn centered_square(center: Pos, side_length: f32) -> Self {
         debug_assert!(is_positive(side_length));
         let half_size = side_length * 0.5;
@@ -206,8 +214,9 @@ impl Rect {
     }
 
     /// Creates a new [Rect] anchored at the given `anchor` with the given `pivot` position and the given `size`.
-    /// 
     #[cfg_attr(debug_assertions, track_caller)]
+    #[inline]
+    #[must_use]
     pub const fn from_anchored_pivot(anchor: Anchor, pivot: Pos, size: Size) -> Rect {
         debug_assert!(size.is_positive());
         match anchor {
@@ -263,6 +272,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn from_points(points: [Pos; 2]) -> Self {
         Self {
             min: points[0].min(points[1]),
@@ -272,6 +282,7 @@ impl Rect {
 
     #[cfg_attr(debug_assertions, track_caller)]
     #[inline]
+    #[must_use]
     pub const fn from_points_slice(slice: &[Pos]) -> Self {
         debug_assert!(slice.len() >= 2);
         Self {
@@ -281,6 +292,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn grid(self) -> Grid {
         Grid::from_rect(self)
     }
@@ -298,13 +310,14 @@ impl Rect {
     /// That is, the `min` is the real minimum bound and the max
     /// is the real maximum bound.
     #[inline]
-    pub const fn fixed(self) -> Self {
-        let min = self.min.min(self.max);
-        let max = self.max.max(self.min);
-        Self::from_min_max(min, max)
+    #[must_use]
+    pub const fn fixed(mut self) -> Self {
+        self.fix();
+        self
     }
 
     #[inline]
+    #[must_use]
     pub const fn size(self) -> Size {
         Size::new(
             self.width(),
@@ -313,51 +326,125 @@ impl Rect {
     }
 
     #[inline]
-    pub const fn with_size(self, size: Size) -> Self {
-        Self::from_min_max(
-            self.min,
-            self.max.add_dims(size.width, size.height)
-        )
-    }
-
-    #[inline]
-    pub const fn with_size_centered(self, size: Size) -> Self {
-        let mid_point = self.center();
-        let half_size = size.half();
-        Self::from_min_max(
-            Pos::new(
-                mid_point.x - half_size.width,
-                mid_point.y - half_size.height
-            ),
-            Pos::new(
-                mid_point.x + half_size.width,
-                mid_point.y + half_size.height,
-            ),
-        )
-    }
-
-    #[inline]
-    pub const fn with_size_anchored(self, size: Size, anchor: Anchor) -> Self {
-        Self::from_anchored_pivot(anchor, self.anchor(anchor), size)
-    }
-
-    #[inline]
     pub const fn set_size(&mut self, size: Size) {
         self.max = self.min.add_dims(size.width, size.height);
     }
 
     #[inline]
+    #[must_use]
+    pub const fn with_size(mut self, size: Size) -> Self {
+        self.set_size(size);
+        self
+    }
+
+    #[inline]
     pub const fn set_size_centered(&mut self, size: Size) {
-        *self = self.with_size_centered(size)
+        let center = self.center();
+        let half_size = size.half();
+        self.min = Pos::new(
+            center.x - half_size.width,
+            center.y - half_size.height
+        );
+        self.max = Pos::new(
+            center.x + half_size.width,
+            center.y + half_size.height
+        );
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn with_size_centered(mut self, size: Size) -> Self {
+        self.set_size_centered(size);
+        self
     }
 
     #[inline]
     pub const fn set_size_anchored(&mut self, size: Size, anchor: Anchor) {
-        *self = self.with_size_anchored(size, anchor)
+        match anchor {
+            Anchor::LeftTop => {
+                self.max = Pos::new(
+                    self.min.x + size.width,
+                    self.min.y + size.height
+                );
+            },
+            Anchor::LeftCenter => {
+                let half_height = half(size.height);
+                let left_center = self.left_center();
+                self.min = Pos::new(
+                    left_center.x,
+                    left_center.y - half_height
+                );
+                self.max = Pos::new(
+                    left_center.x + size.width,
+                    left_center.y + half_height
+                );
+            },
+            Anchor::LeftBottom => {
+                // min.x, max.y stays same
+                self.max.x = self.min.x + size.width;
+                self.min.y = self.max.y - size.height;
+            },
+            Anchor::BottomCenter => {
+                let half_width = half(size.width);
+                let bottom_center = self.bottom_center();
+                self.min = Pos::new(
+                    bottom_center.x - half_width,
+                    bottom_center.y - size.height
+                );
+                self.max = Pos::new(
+                    bottom_center.x + half_width,
+                    bottom_center.y
+                );
+            },
+            Anchor::RightBottom => {
+                // max stays the same
+                self.min = self.max.sub_size(size);
+            },
+            Anchor::RightCenter => {
+                let half_height = half(size.height);
+                let right_center = self.right_center();
+                self.min = Pos::new(
+                    right_center.x - size.width,
+                    right_center.y - half_height
+                );
+                self.max = Pos::new(
+                    right_center.x,
+                    right_center.y + half_height
+                );
+            },
+            Anchor::RightTop => {
+                // min.y, max.x stays the same
+                self.min.x = self.max.x - size.width;
+                self.max.y = self.min.y + size.height;
+            },
+            Anchor::TopCenter => {
+                let half_width = half(size.width);
+                let top_center = self.top_center();
+                self.min = Pos::new(
+                    top_center.x - half_width,
+                    top_center.y
+                );
+                self.max = Pos::new(
+                    top_center.x + half_width,
+                    top_center.y + size.height
+                );
+            },
+            Anchor::Center => {
+                self.set_size_centered(size);
+            },
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn with_size_anchored(mut self, size: Size, anchor: Anchor) -> Self {
+        self.set_size_anchored(size, anchor);
+        self
     }
 
     // Dimensions
     #[inline]
+    #[must_use]
     pub const fn width(self) -> f32 {
         self.max.x - self.min.x
     }
@@ -368,6 +455,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_width(mut self, width: f32) -> Self {
         self.set_width(width);
         self
@@ -383,6 +471,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_width_centered(mut self, width: f32) -> Self {
         self.set_width_centered(width);
         self
@@ -395,12 +484,14 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_width_right(mut self, width: f32) -> Self {
         self.set_width_right(width);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn height(self) -> f32 {
         self.max.y - self.min.y
     }
@@ -411,6 +502,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_height(mut self, height: f32) -> Self {
         self.set_height(height);
         self
@@ -426,6 +518,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_height_centered(mut self, height: f32) -> Self {
         self.set_height_centered(height);
         self
@@ -437,12 +530,14 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_height_bottom(mut self, height: f32) -> Self {
         self.set_height_bottom(height);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn left(self) -> f32 {
         self.min.x
     }
@@ -455,6 +550,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_left(mut self, left: f32) -> Self {
         self.set_left(left);
         self
@@ -466,12 +562,14 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_left_bound(mut self, left: f32) -> Self {
         self.set_left_bound(left);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn right(self) -> f32 {
         self.max.x
     }
@@ -484,6 +582,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_right(mut self, right: f32) -> Self {
         self.set_right(right);
         self
@@ -495,12 +594,14 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_right_bound(mut self, right: f32) -> Self {
         self.set_right_bound(right);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn top(self) -> f32 {
         self.min.y
     }
@@ -513,6 +614,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_top(mut self, top: f32) -> Self {
         self.set_top(top);
         self
@@ -524,12 +626,14 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_top_bound(mut self, top: f32) -> Self {
         self.set_top_bound(top);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn bottom(self) -> f32 {
         self.max.y
     }
@@ -542,6 +646,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_bottom(mut self, bottom: f32) -> Self {
         self.set_bottom(bottom);
         self
@@ -553,12 +658,14 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_bottom_bound(mut self, bottom: f32) -> Self {
         self.set_bottom_bound(bottom);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn left_top(self) -> Pos {
         self.min
     }
@@ -567,10 +674,11 @@ impl Rect {
     pub const fn set_left_top(&mut self, left_top: Pos) {
         let size = self.size();
         self.min = left_top;
-        self.max = left_top.add_dims(size.width, size.height);
+        self.max = left_top.add_size(size);
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_left_top(mut self, left_top: Pos) -> Self {
         self.set_left_top(left_top);
         self
@@ -582,12 +690,14 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_left_top_bound(mut self, left_top: Pos) -> Self {
         self.set_left_top_bound(left_top);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn right_top(self) -> Pos {
         Pos::new(self.max.x, self.min.y)
     }
@@ -595,11 +705,18 @@ impl Rect {
     #[inline]
     pub const fn set_right_top(&mut self, right_top: Pos) {
         let size = self.size();
-        self.min = pos(right_top.x - size.width, right_top.y);
-        self.max = pos(right_top.x, right_top.y + size.height);
+        self.min = Pos::new(
+            right_top.x - size.width,
+            right_top.y
+        );
+        self.max = Pos::new(
+            right_top.x,
+            right_top.y + size.height
+        );
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_right_top(mut self, right_top: Pos) -> Self {
         self.set_right_top(right_top);
         self
@@ -612,12 +729,14 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_right_top_bound(mut self, right_top: Pos) -> Self {
         self.set_right_top_bound(right_top);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn left_bottom(self) -> Pos {
         Pos::new(self.min.x, self.max.y)
     }
@@ -625,11 +744,18 @@ impl Rect {
     #[inline]
     pub const fn set_left_bottom(&mut self, left_bottom: Pos) {
         let size = self.size();
-        self.min = pos(left_bottom.x, left_bottom.y - size.height);
-        self.max = pos(left_bottom.x + size.width, left_bottom.y);
+        self.min = Pos::new(
+            left_bottom.x,
+            left_bottom.y - size.height
+        );
+        self.max = Pos::new(
+            left_bottom.x + size.width,
+            left_bottom.y
+        );
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_left_bottom(mut self, left_bottom: Pos) -> Self {
         self.set_left_bottom(left_bottom);
         self
@@ -642,12 +768,14 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_left_bottom_bound(mut self, left_bottom: Pos) -> Self {
         self.set_left_bottom_bound(left_bottom);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn right_bottom(self) -> Pos {
         self.max
     }
@@ -655,11 +783,15 @@ impl Rect {
     #[inline]
     pub const fn set_right_bottom(&mut self, right_bottom: Pos) {
         let size = self.size();
-        self.min = pos(right_bottom.x - size.width, right_bottom.y - size.height);
+        self.min = Pos::new(
+            right_bottom.x - size.width,
+            right_bottom.y - size.height
+        );
         self.max = right_bottom;
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_right_bottom(mut self, right_bottom: Pos) -> Self {
         self.set_right_bottom(right_bottom);
         self
@@ -671,12 +803,14 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_right_bottom_bound(mut self, right_bottom: Pos) -> Self {
         self.set_right_bottom_bound(right_bottom);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn left_center(self) -> Pos {
         // We assume that self.max.y >= self.min.y
         let center_y = self.min.y.midpoint(self.max.y);
@@ -687,17 +821,25 @@ impl Rect {
     pub const fn set_left_center(&mut self, left_center: Pos) {
         let size = self.size();
         let half_height = size.half_height();
-        self.min = pos(left_center.x, left_center.y - half_height);
-        self.max = pos(left_center.x + size.width, left_center.y + half_height);
+        self.min = Pos::new(
+            left_center.x,
+            left_center.y - half_height
+        );
+        self.max = Pos::new(
+            left_center.x + size.width,
+            left_center.y + half_height
+        );
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_left_center(mut self, left_center: Pos) -> Self {
         self.set_left_center(left_center);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn top_center(self) -> Pos {
         let center_x = self.min.x.midpoint(self.max.x);
         Pos::new(center_x, self.min.y)
@@ -707,17 +849,25 @@ impl Rect {
     pub const fn set_top_center(&mut self, top_center: Pos) {
         let size = self.size();
         let half_width = size.half_width();
-        self.min = pos(top_center.x - half_width, top_center.y);
-        self.max = pos(top_center.x + half_width, top_center.y + size.height);
+        self.min = Pos::new(
+            top_center.x - half_width,
+            top_center.y
+        );
+        self.max = Pos::new(
+            top_center.x + half_width,
+            top_center.y + size.height
+        );
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_top_center(mut self, top_center: Pos) -> Self {
         self.set_top_center(top_center);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn right_center(self) -> Pos {
         let center_y = self.min.y.midpoint(self.max.y);
         Pos::new(self.max.x, center_y)
@@ -727,17 +877,25 @@ impl Rect {
     pub const fn set_right_center(&mut self, right_center: Pos) {
         let size = self.size();
         let half_height = size.half_height();
-        self.min = pos(right_center.x - size.width, right_center.y - half_height);
-        self.max = pos(right_center.x, right_center.y + half_height);
+        self.min = pos(
+            right_center.x - size.width,
+            right_center.y - half_height
+        );
+        self.max = pos(
+            right_center.x,
+            right_center.y + half_height
+        );
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_right_center(mut self, right_center: Pos) -> Self {
         self.set_right_center(right_center);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn bottom_center(self) -> Pos {
         let center_x = self.min.x.midpoint(self.max.x);
         Pos::new(center_x, self.max.y)
@@ -747,17 +905,25 @@ impl Rect {
     pub const fn set_bottom_center(&mut self, bottom_center: Pos) {
         let size = self.size();
         let half_width = size.half_width();
-        self.min = pos(bottom_center.x - half_width, bottom_center.y - size.height);
-        self.max = pos(bottom_center.x + half_width, bottom_center.y);
+        self.min = pos(
+            bottom_center.x - half_width,
+            bottom_center.y - size.height
+        );
+        self.max = pos(
+            bottom_center.x + half_width,
+            bottom_center.y
+        );
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_bottom_center(mut self, bottom_center: Pos) -> Self {
         self.set_bottom_center(bottom_center);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn center(self) -> Pos {
         let center_x = self.min.x.midpoint(self.max.x);
         let center_y = self.min.y.midpoint(self.max.y);
@@ -767,11 +933,18 @@ impl Rect {
     #[inline]
     pub const fn set_center(&mut self, center: Pos) {
         let half_size = self.size().half();
-        self.min = pos(center.x - half_size.width, center.y - half_size.height);
-        self.max = pos(center.x + half_size.width, center.y + half_size.height);
+        self.min = pos(
+            center.x - half_size.width,
+            center.y - half_size.height
+        );
+        self.max = pos(
+            center.x + half_size.width,
+            center.y + half_size.height
+        );
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_center(mut self, center: Pos) -> Self {
         self.set_center(center);
         self
@@ -808,6 +981,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_placed_anchor(mut self, anchor: Anchor, pos: Pos) -> Self {
         self.place_anchor(anchor, pos);
         self
@@ -860,24 +1034,22 @@ impl Rect {
         }
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn moved_to_anchor(mut self, anchor: Anchor) -> Self {
         self.move_to_anchor(anchor);
         self
     }
 
+    #[inline]
     pub const fn move_on_grid(&mut self, x: i32, y: i32) {
         let x_offset = self.width() * x as f32;
         let y_offset = self.height() * y as f32;
-        self.min.x += x_offset;
-        self.min.y += y_offset;
-        self.max.x += x_offset;
-        self.max.y += y_offset;
+        self.translate(Pos::new(x_offset, y_offset));
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn moved_on_grid(mut self, x: i32, y: i32) -> Self {
         self.move_on_grid(x, y);
         self
@@ -885,6 +1057,7 @@ impl Rect {
 
     /// Takes a uv coordinate (0.0 to 1.0 for x and y) and returns the position at that UV coordinate on the [Rect].
     #[inline]
+    #[must_use]
     pub const fn uv_pos(self, uv: Pos) -> Pos {
         Pos::new(
             lerp(self.min.x, self.max.x, uv.x),
@@ -906,43 +1079,50 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_uv_pos(mut self, uv: Pos, pos: Pos) -> Self {
         self.set_uv_pos(uv, pos);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn contains(self, pos: Pos) -> bool {
         self.min.x <= pos.x && self.min.y <= pos.y
         && self.max.x > pos.x && self.max.y > pos.y
     }
 
     #[inline]
+    #[must_use]
     pub const fn contains_rect(self, rect: Rect) -> bool {
         self.min.x <= rect.min.x && self.max.x >= rect.max.x
         && self.min.y <= rect.min.y && self.max.y >= rect.max.y
     }
 
     #[inline]
+    #[must_use]
     pub const fn inside_rect(self, rect: Rect) -> bool {
         rect.contains_rect(self)
     }
 
     #[inline]
+    #[must_use]
     pub const fn outside_rect(self, rect: Rect) -> bool {
         self.max.x < rect.min.x || self.max.y < rect.min.y
         || self.min.x >= rect.max.x || self.min.y >= rect.max.y
     }
 
     #[inline]
-    pub const fn intersects(self, rect: &Rect) -> bool {
+    #[must_use]
+    pub const fn overlaps(self, rect: &Rect) -> bool {
         rect.min.x < self.max.x && rect.min.y < self.max.y
         && rect.max.x > self.min.x && rect.max.y > self.min.y
     }
 
     #[inline]
-    pub const fn intersection(self, other: Rect) -> Option<Rect> {
-        if !self.intersects(&other) {
+    #[must_use]
+    pub const fn intersect(self, other: Rect) -> Option<Rect> {
+        if !self.overlaps(&other) {
             return None;
         }
         let left = self.min.x.max(other.min.x);
@@ -956,6 +1136,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn intersect_all(rects: &[Rect]) -> Option<Rect> {
         let mut intersection = match rects.len() {
             0 => return None,
@@ -964,13 +1145,49 @@ impl Rect {
         };
         let mut index = 1;
         while index < rects.len() {
-            let Some(new_rect) = intersection.intersection(rects[index]) else {
+            let Some(new_rect) = intersection.intersect(rects[index]) else {
                 return None;
             };
             intersection = new_rect;
             index += 1;
         }
         Some(intersection)
+    }
+
+    /// Extends the [Rect] so that it contains `point`.
+    #[inline]
+    pub const fn stretch_to_fit_point(&mut self, point: Pos) {
+        self.min = self.min.min(point);
+        self.max = self.max.max(point);
+    }
+
+    /// Returns `self` stretched to contain `point`. 
+    #[inline]
+    #[must_use]
+    pub const fn stretched_to_fit_point(mut self, point: Pos) -> Self {
+        self.stretch_to_fit_point(point);
+        self
+    }
+
+    /// Returns a [Rect] based on the minimum and maximum bounds of all points.
+    /// 
+    /// Returns [None] if `points.len() < 2`.
+    #[inline]
+    #[must_use]
+    pub const fn wraps_points(points: &[Pos]) -> Option<Rect> {
+        if points.len() < 2 {
+            return None;
+        }
+        let mut min = points[0].min(points[1]);
+        let mut max = points[1].max(points[0]);
+        let mut index = 2;
+        while index < points.len() {
+            let point = points[index];
+            min = min.min(point);
+            max = max.max(point);
+            index += 1;
+        }
+        Some(Rect::from_min_max(min, max))
     }
 
     #[inline]
@@ -980,6 +1197,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_translation(mut self, offset: Pos) -> Self {
         self.translate(offset);
         self
@@ -992,12 +1210,14 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn with_inv_translation(mut self, offset: Pos) -> Self {
         self.inv_translate(offset);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn add_offset(self, offset: Pos) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x + offset.x, self.min.y + offset.y),
@@ -1006,6 +1226,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn sub_offset(self, offset: Pos) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x - offset.x, self.min.y - offset.y),
@@ -1014,6 +1235,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn add_size(self, size: Size) -> Self {
         Self::from_min_max(
             self.min,
@@ -1022,11 +1244,19 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn add_size_centered(self, size: Size) -> Self {
         self.inflate2(size.width, size.height)
     }
 
     #[inline]
+    #[must_use]
+    pub const fn add_size_anchored(self, anchor: Anchor, size: Size) -> Self {
+        Self::from_anchored_pivot(anchor, self.anchor(anchor), self.size().add(size))
+    }
+
+    #[inline]
+    #[must_use]
     pub const fn sub_size(self, size: Size) -> Self {
         Self::from_min_max(
             self.min,
@@ -1035,11 +1265,19 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn sub_size_centered(self, size: Size) -> Self {
         self.deflate2(size.width, size.height)
     }
 
     #[inline]
+    #[must_use]
+    pub const fn sub_size_anchored(self, anchor: Anchor, size: Size) -> Self {
+        Self::from_anchored_pivot(anchor, self.anchor(anchor), self.size().sub(size))
+    }
+
+    #[inline]
+    #[must_use]
     pub const fn anchor(&self, anchor: Anchor) -> Pos {
         match anchor {
             Anchor::LeftTop => self.left_top(),
@@ -1055,6 +1293,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn inflate(self, expand: f32) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x - expand, self.min.y - expand),
@@ -1063,6 +1302,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn inflate2(self, x: f32, y: f32) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x - x, self.min.y - y),
@@ -1071,6 +1311,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn deflate(self, shrink: f32) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x + shrink, self.min.y + shrink),
@@ -1079,6 +1320,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn deflate2(self, x: f32, y: f32) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x + x, self.min.y + y),
@@ -1092,8 +1334,8 @@ impl Rect {
         self.set_size(self.size().scale(scalar));
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn with_scale(mut self, scalar: f32) -> Self {
         self.set_scale(scalar);
         self
@@ -1104,8 +1346,8 @@ impl Rect {
         self.set_size_centered(self.size().scale(scalar));
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn with_scale_centered(mut self, scalar: f32) -> Self {
         self.set_scale_centered(scalar);
         self
@@ -1116,8 +1358,8 @@ impl Rect {
         self.set_size_anchored(self.size().scale(scalar), anchor);
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn with_scale_anchored(mut self, scalar: f32, anchor: Anchor) -> Self {
         self.set_scale_anchored(scalar, anchor);
         self
@@ -1135,6 +1377,7 @@ impl Rect {
 
     /// Add a [Padding] to a [Rect].
     #[inline]
+    #[must_use]
     pub const fn add_padding(self, padding: Padding) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x + padding.left, self.min.y + padding.top),
@@ -1146,6 +1389,7 @@ impl Rect {
     /// 
     /// What you likely want to use is `add_margin_anchored`, which keeps the rect anchored while adding the margin.
     #[inline]
+    #[must_use]
     pub const fn add_margin(self, margin: Margin) -> Self {
         Self::from_min_max(
             self.min,
@@ -1154,6 +1398,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn add_margin_centered(self, margin: Margin) -> Self {
         Self::from_min_max(
             Pos::new(
@@ -1168,16 +1413,20 @@ impl Rect {
     }
 
     #[inline]
-    pub const fn add_margin_anchored(self, margin: Margin, anchor: Anchor) -> Self {
+    #[must_use]
+    pub const fn add_margin_anchored(mut self, margin: Margin, anchor: Anchor) -> Self {
         // TODO: Write custom implementation so you don't have to use anchor() and from_anchored_pivot()
-        let pivot = self.anchor(anchor);
+        // let pivot = self.anchor(anchor);
         let new_size = self.size().add_margin(margin);
-        Self::from_anchored_pivot(anchor, pivot, new_size)
+        // Self::from_anchored_pivot(anchor, pivot, new_size)
+        self.set_size_anchored(new_size, anchor);
+        self
     }
 
     /// Remove [Padding] from a [Rect].
     /// This is the inverse of `add_padding`.
     #[inline]
+    #[must_use]
     pub const fn sub_padding(self, padding: Padding) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x - padding.left, self.min.y - padding.top),
@@ -1189,6 +1438,7 @@ impl Rect {
     /// 
     /// What you likely want is `sub_margin_anchored`, which keeps the rect anchored while subtracting the margin.
     #[inline]
+    #[must_use]
     pub const fn sub_margin(self, margin: Margin) -> Self {
         Self::from_min_max(
             self.min,
@@ -1197,6 +1447,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn sub_margin_centered(self, margin: Margin) -> Self {
         Self::from_min_max(
             Pos::new(
@@ -1211,11 +1462,12 @@ impl Rect {
     }
 
     #[inline]
-    pub const fn sub_margin_anchored(self, margin: Margin, anchor: Anchor) -> Self {
+    #[must_use]
+    pub const fn sub_margin_anchored(mut self, margin: Margin, anchor: Anchor) -> Self {
         // TODO: Write custom implementation so you don't have to use anchor() and from_anchored_pivot()
-        let pivot = self.anchor(anchor);
         let new_size = self.size().sub_margin(margin);
-        Self::from_anchored_pivot(anchor, pivot, new_size)
+        self.set_size_anchored(new_size, anchor);
+        self
     }
 
     /// Applies [Padding] in-place, mutating the [Rect].
@@ -1251,15 +1503,44 @@ impl Rect {
         self.max.x -= margin.right;
         self.max.y -= margin.bottom;
     }
+    
+    #[inline]
+    #[must_use]
+    pub const fn with_padding(mut self, padding: Padding) -> Self {
+        self.apply_padding(padding);
+        self
+    }
+    
+    #[inline]
+    #[must_use]
+    pub const fn without_padding(mut self, padding: Padding) -> Self {
+        self.remove_padding(padding);
+        self
+    }
+    
+    #[inline]
+    #[must_use]
+    pub const fn with_margin(mut self, margin: Margin) -> Self {
+        self.apply_margin(margin);
+        self
+    }
+    
+    #[inline]
+    #[must_use]
+    pub const fn without_margin(mut self, margin: Margin) -> Self {
+        self.remove_margin(margin);
+        self
+    }
 
     /// This will return (`left`, `right`).
     #[inline]
+    #[must_use]
     pub const fn split_from_left(self, split: f32) -> (Self, Self) {
         // this will take a rect and split it where the lhs
         // is the left side of the rect with the right at the split.
         // to get the split position, it would be left + split
-        let lhs_max = pos(self.min.x + split, self.max.y);
-        let rhs_min = pos(lhs_max.x, self.min.y);
+        let lhs_max = Pos::new(self.min.x + split, self.max.y);
+        let rhs_min = Pos::new(lhs_max.x, self.min.y);
         (
             Rect {
                 min: self.min,
@@ -1274,9 +1555,10 @@ impl Rect {
 
     /// This will return (`top`, `bottom`).
     #[inline]
+    #[must_use]
     pub const fn split_from_top(self, split: f32) -> (Self, Self) {
-        let lhs_max = pos(self.max.x, self.min.y + split);
-        let rhs_min = pos(self.min.x, lhs_max.y);
+        let lhs_max = Pos::new(self.max.x, self.min.y + split);
+        let rhs_min = Pos::new(self.min.x, lhs_max.y);
         (
             Rect {
                 min: self.min,
@@ -1291,9 +1573,10 @@ impl Rect {
 
     /// This will return (`self.right`, `self.left`).
     #[inline]
+    #[must_use]
     pub const fn split_from_right(self, split: f32) -> (Self, Self) {
-        let lhs_min = pos(self.max.x - split, self.min.y);
-        let rhs_max = pos(lhs_min.x, self.max.y);
+        let lhs_min = Pos::new(self.max.x - split, self.min.y);
+        let rhs_max = Pos::new(lhs_min.x, self.max.y);
         (
             Rect {
                 min: lhs_min,
@@ -1308,9 +1591,10 @@ impl Rect {
 
     /// This will return (`self.bottom`, `self.top`).
     #[inline]
+    #[must_use]
     pub const fn split_from_bottom(self, split: f32) -> (Self, Self) {
-        let lhs_min = pos(self.min.x, self.max.y - split);
-        let rhs_max = pos(self.max.x, lhs_min.y);
+        let lhs_min = Pos::new(self.min.x, self.max.y - split);
+        let rhs_max = Pos::new(self.max.x, lhs_min.y);
         (
             Rect {
                 min: lhs_min,
@@ -1324,6 +1608,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn left_adjacent(self, length: f32) -> Self {
         Self {
             min: Pos::new(self.min.x - length, self.min.y),
@@ -1332,6 +1617,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn top_adjacent(self, length: f32) -> Self {
         Self {
             min: Pos::new(self.min.x, self.min.y - length),
@@ -1340,6 +1626,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn right_adjacent(self, length: f32) -> Self {
         Self {
             min: self.right_top(),
@@ -1348,6 +1635,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn bottom_adjacent(self, length: f32) -> Self {
         Self {
             min: self.left_bottom(),
@@ -1356,14 +1644,16 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn left_top_adjacent(self, size: Size) -> Self {
         Self::from_min_max(
-            self.min.sub_dims(size.width, size.height),
+            self.min.sub_size(size),
             self.min,
         )
     }
 
     #[inline]
+    #[must_use]
     pub const fn right_top_adjacent(self, size: Size) -> Self {
         Self::from_min_max(
             Pos::new(self.max.x, self.min.y - size.height),
@@ -1372,6 +1662,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn left_bottom_adjacent(self, size: Size) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x - size.width, self.max.y),
@@ -1380,13 +1671,16 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn right_bottom_adjacent(self, size: Size) -> Self {
         Self::from_min_max(
             self.max,
-            self.max.add_dims(size.width, size.height)
+            self.max.add_size(size)
         )
     }
 
+    #[inline]
+    #[must_use]
     pub const fn handle_rect(self, anchor: Anchor, placement: Placement, size: f32) -> Self {
         match (anchor, placement) {
             (Anchor::LeftTop, Placement::Inside) => Rect {
@@ -1525,17 +1819,19 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn pivot_rect(self, anchor: Anchor, size: Size) -> Self {
         Self::centered(self.anchor(anchor), size)
     }
 
     #[inline]
+    #[must_use]
     pub const fn square_pivot_rect(self, anchor: Anchor, size: f32) -> Self {
         Self::centered_square(self.anchor(anchor), size)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn aspect_ratio(self) -> AspectRatio {
         // divide by width by aspect ratio to get height
         // multiply height by aspect ratio to get width
@@ -1544,6 +1840,8 @@ impl Rect {
 
     /// Returns a rect inside of `self` that fits perfectly in the center
     /// by scaling `size`.
+    #[inline]
+    #[must_use]
     pub const fn scale_inside(self, aspect_ratio: AspectRatio) -> Self {
         // determine which scaling method must be used.
         let msize = self.size();
@@ -1556,6 +1854,8 @@ impl Rect {
         Rect::centered(self.center(), new_size)
     }
 
+    #[inline]
+    #[must_use]
     pub const fn scale_middle(self, aspect_ratio: AspectRatio) -> Self {
         let msize = self.size();
         let mar = msize.aspect_ratio();
@@ -1570,6 +1870,8 @@ impl Rect {
 
     /// Returns a rect outside of `self` that fits perfectly in the center
     /// by scaling `size`.
+    #[inline]
+    #[must_use]
     pub const fn scale_outside(self, aspect_ratio: AspectRatio) -> Self {
         // determine which scaling method must be used.
         let msize = self.size();
@@ -1583,6 +1885,7 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn lerp(self, other: Rect, t: f32) -> Self {
         Self::from_min_max(
             self.min.lerp(other.min, t),
@@ -1591,15 +1894,20 @@ impl Rect {
     }
 
     #[inline]
+    #[must_use]
     pub const fn clamped_lerp(self, other: Rect, t: f32) -> Self {
         self.lerp(other, t.clamp(0.0, 1.0))
     }
 
     #[inline]
+    #[must_use]
     pub fn map<R, F: FnOnce(Pos, Pos) -> R>(self, map: F) -> R {
         map(self.min, self.max)
     }
 
+    #[inline]
+    #[must_use]
+    #[track_caller]
     pub fn sdf(self, pos: Pos) -> f32 {
         #[cold]
         #[inline(never)]
@@ -1663,6 +1971,8 @@ impl Rect {
         }
     }
 
+    #[inline]
+    #[must_use]
     #[track_caller]
     pub fn closest_point(self, pos: Pos) -> Pos {
         #[cold]
@@ -1747,8 +2057,8 @@ impl Rect {
         self.set_size(self.size().swap_dims());
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn with_swapped_lengths(mut self) -> Self {
         self.swap_lengths();
         self
@@ -1759,8 +2069,8 @@ impl Rect {
         self.set_size_centered(self.size().swap_dims());
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn with_swapped_lengths_centered(mut self) -> Self {
         self.swap_lengths_centered();
         self
@@ -1771,16 +2081,16 @@ impl Rect {
         *self = Self::from_anchored_pivot(anchor, self.anchor(anchor), self.size().swap_dims());
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn with_swapped_lengths_anchored(mut self, anchor: Anchor) -> Self {
         self.swap_lengths_anchored(anchor);
         self
     }
 
     /// Returns `(left, right)`
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn split_horizontal(self) -> (Self, Self) {
         let middle = self.min.x.midpoint(self.max.x);
         (
@@ -1796,8 +2106,8 @@ impl Rect {
     }
 
     /// Returns `(top, bottom)`
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn split_vertical(self) -> (Self, Self) {
         let middle = self.min.y.midpoint(self.max.y);
         (
@@ -1813,8 +2123,8 @@ impl Rect {
     }
 
     /// Subdivide the Rect into four quadrants.
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn subdivide_quad(self) -> QuadSubdivide<Self> {
         let mid_x = self.min.x.midpoint(self.max.x);
         let mid_y = self.min.y.midpoint(self.max.y);
@@ -1846,22 +2156,22 @@ impl Rect {
     }
 
     /// Get the hypotenuse (the distance between opposite corners).
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn hypotenuse(self) -> f32 {
         self.min.distance(self.max)
     }
 
     /// Get the hypotenuse (the distance between opposite corners) squared.
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn hypotenuse_squared(self) -> f32 {
         self.min.distance_squared(self.max)
     }
 
     /// Gets the corner vertex at the given [Intercardinal] direction.
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn corner(self, corner: Intercardinal) -> Pos {
         match corner {
             Intercardinal::Nw => self.left_top(),
@@ -1876,8 +2186,8 @@ impl Rect {
     /// - Top Right (`self.right_top()`)
     /// - Bottom Left (`self.left_bottom()`)
     /// - Bottom Right (`self.right_bottom()`)
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn corners(self) -> [Pos; 4] {
         [
             self.left_top(), self.right_top(),
@@ -1890,8 +2200,8 @@ impl Rect {
     /// - Top Right (`self.right_top()`)
     /// - Bottom Right (`self.right_bottom()`)
     /// - Bottom Left (`self.left_bottom()`)
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn corners_cw(self) -> [Pos; 4] {
         [
             self.left_top(),
@@ -1906,8 +2216,8 @@ impl Rect {
     /// - Bottom Left (`self.left_bottom()`)
     /// - Bottom Right (`self.right_bottom()`)
     /// - Top Right (`self.right_top()`)
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn corners_ccw(self) -> [Pos; 4] {
         [
             self.left_top(),
@@ -1917,8 +2227,8 @@ impl Rect {
         ]
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn edge_midpoint(self, edge: Axial) -> Pos {
         match edge {
             Axial::Right => self.right_center(),
@@ -1928,9 +2238,9 @@ impl Rect {
         }
     }
 
-    /// Get the edge vertices in clockwise order.
-    #[must_use]
+    /// Get the `edge` vertices in clockwise order.
     #[inline]
+    #[must_use]
     pub const fn edge_points_cw(self, edge: Axial) -> [Pos; 2] {
         match edge {
             Axial::Right => [
@@ -1952,9 +2262,9 @@ impl Rect {
         }
     }
 
-    /// Get the edge vertices in counter-clockwise order.
-    #[must_use]
+    /// Get the `edge` vertices in counter-clockwise order.
     #[inline]
+    #[must_use]
     pub const fn edge_points_ccw(self, edge: Axial) -> [Pos; 2] {
         match edge {
             Axial::Up => [
@@ -1976,9 +2286,9 @@ impl Rect {
         }
     }
 
-    /// Get the edge vertices ordered from min to max.
-    #[must_use]
+    /// Get the `edge` vertices ordered from min to max.
     #[inline]
+    #[must_use]
     pub const fn edge_points_min_max(self, edge: Axial) -> [Pos; 2] {
         match edge {
             Axial::Right => [
@@ -2000,9 +2310,9 @@ impl Rect {
         }
     }
 
-    /// Get the edge vertices ordered from max to min.
-    #[must_use]
+    /// Get the `edge` vertices ordered from max to min.
     #[inline]
+    #[must_use]
     pub const fn edge_points_max_min(self, edge: Axial) -> [Pos; 2] {
         match edge {
             Axial::Right => [
@@ -2033,8 +2343,8 @@ impl Rect {
         self.max.y = self.max.y.max(rect.max.y);
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn extended_to_fit(mut self, rect: Rect) -> Self {
         self.extend_to_fit(rect);
         self
@@ -2043,6 +2353,7 @@ impl Rect {
     /// Gets the smallest [Rect] that can contain all `rects`.
     /// 
     /// Returns [Rect::ZERO] if the slice is empty.
+    #[inline]
     #[must_use]
     pub const fn min_rect(rects: &[Self]) -> Self {
         let Some((min_rect, rects)) = rects.split_first() else {
@@ -2058,24 +2369,7 @@ impl Rect {
     }
 
     // Containing Pos
-    #[must_use]
-    pub fn subdivision_containing(self, pos: Pos, cols: u32, rows: u32) -> Option<Self> {
-        if !self.contains(pos) || cols == 0 || rows == 0 {
-            return None;
-        }
-        let size = self.size();
-        let cell_width = size.width / cols as f32;
-        let cell_height = size.height / rows as f32;
-        let inner_pos = pos.sub(self.min);
-        let cell_min = inner_pos
-            .div_dims(cell_width, cell_height)
-            .floor()
-            .mul_dims(cell_width, cell_height)
-            .add(self.min);
-        Some(Self::from_min_size(cell_min, Size::new(cell_width, cell_height)))
-    }
-
-    // Containing Pos
+    #[inline]
     #[must_use]
     pub fn subdivision_containing_with_coord(self, pos: Pos, cols: u32, rows: u32) -> Option<((u32, u32), Self)> {
         if cols == 0 || rows == 0 || !self.contains(pos) {
@@ -2098,30 +2392,15 @@ impl Rect {
         ))
     }
 
-    // Containing Rect
+    // Containing Pos
+    #[inline]
     #[must_use]
-    pub fn subdivision_containing_rect(self, rect: Self, cols: u32, rows: u32) -> Option<Self> {
-        if !self.contains_rect(rect) {
-            return None;
-        }
-        let size = self.size();
-        let cell_width = size.width / cols as f32;
-        let cell_height = size.height / rows as f32;
-        let inner_min = rect.min.sub(self.min);
-        let cell_min = inner_min
-            .div_dims(cell_width, cell_height)
-            .floor()
-            .mul_dims(cell_width, cell_height)
-            .add(self.min);
-        let cell = Rect::from_min_size(cell_min, Size::new(cell_width, cell_height));
-        if cell.contains_rect(rect) {
-            Some(cell)
-        } else {
-            None
-        }
+    pub fn subdivision_containing(self, pos: Pos, cols: u32, rows: u32) -> Option<Self> {
+        self.subdivision_containing_with_coord(pos, cols, rows).map(|(_, result)| result)
     }
 
     // Containing Rect
+    #[inline]
     #[must_use]
     pub fn subdivision_containing_rect_with_coord(self, rect: Self, cols: u32, rows: u32) -> Option<((u32, u32), Self)> {
         if !self.contains_rect(rect) {
@@ -2146,6 +2425,14 @@ impl Rect {
         }
     }
 
+    // Containing Rect
+    #[inline]
+    #[must_use]
+    pub fn subdivision_containing_rect(self, rect: Self, cols: u32, rows: u32) -> Option<Self> {
+        self.subdivision_containing_rect_with_coord(rect, cols, rows).map(|(_, rect)| rect)
+    }
+
+    #[inline]
     #[must_use]
     pub fn floor(self) -> Self {
         Self::from_min_max(
@@ -2154,6 +2441,7 @@ impl Rect {
         )
     }
 
+    #[inline]
     #[must_use]
     pub fn ceil(self) -> Self {
         Self::from_min_max(
@@ -2163,6 +2451,7 @@ impl Rect {
     }
 
     /// Floors the min bound and ceils the max bound.
+    #[inline]
     #[must_use]
     pub fn floor_ceil(self) -> Self {
         Self::from_min_max(
@@ -2171,6 +2460,8 @@ impl Rect {
         )
     }
 
+    /// Ceils the min bound and floors the max bound.
+    #[inline]
     #[must_use]
     pub fn ceil_floor(self) -> Self {
         Self::from_min_max(
@@ -2179,6 +2470,7 @@ impl Rect {
         )
     }
 
+    #[inline]
     #[must_use]
     pub fn round(self) -> Self {
         Self::from_min_max(
@@ -2282,20 +2574,20 @@ impl std::ops::SubAssign<Size> for Rect {
 impl std::ops::BitAnd<Rect> for Rect {
     type Output = Option<Rect>;
     fn bitand(self, rhs: Rect) -> Self::Output {
-        self.intersection(rhs)
+        self.intersect(rhs)
     }
 }
 
 impl std::ops::BitAnd<Rect> for Option<Rect> {
     type Output = Option<Rect>;
     fn bitand(self, rhs: Rect) -> Self::Output {
-        self?.intersection(rhs)
+        self?.intersect(rhs)
     }
 }
 
 impl std::ops::BitAnd<Option<Rect>> for Rect {
     type Output = Option<Rect>;
     fn bitand(self, rhs: Option<Rect>) -> Self::Output {
-        self.intersection(rhs?)
+        self.intersect(rhs?)
     }
 }

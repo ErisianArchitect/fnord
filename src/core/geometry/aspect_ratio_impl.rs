@@ -19,11 +19,15 @@ impl AspectRatio {
     }
 
     // multiply height by aspect ratio to get width
+    #[must_use]
+    #[inline]
     pub const fn width_from_height(self, height: f32) -> f32 {
         height * self.ratio
     }
     
     // divide by width by aspect ratio to get height
+    #[must_use]
+    #[inline]
     pub const fn height_from_width(self, width: f32) -> f32 {
         width / self.ratio
     }

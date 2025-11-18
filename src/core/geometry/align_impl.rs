@@ -126,4 +126,43 @@ impl Align {
             Align::Max => max,
         }
     }
+    
+    /// Align a region of `size` within `min` and `max` where the returned value
+    /// is where the min coordinate should be.
+    #[inline]
+    pub const fn align_min(self, min: f32, max: f32, size: f32) -> f32 {
+        match self {
+            Align::Min => min,
+            Align::Center => {
+                let align = min + (max - min) * 0.5;
+                let half_size = size * 2.0;
+                align - half_size
+            },
+            Align::Max => max - size,
+        }
+    }
+    
+    /// Align a region of `size` within `min` and `max` where the returned value
+    /// is where the max coordinate should be.
+    #[inline]
+    pub const fn align_max(self, min: f32, max: f32, size: f32) -> f32 {
+        match self {
+            Align::Min => min + size,
+            Align::Center => {
+                let align = min + (max - min) * 0.5;
+                let half_size = size * 0.5;
+                align + half_size
+            },
+            Align::Max => max,
+        }
+    }
+    
+    #[inline]
+    pub const fn align_align(self, align: Self, min: f32, max: f32, size: f32) -> f32 {
+        match align {
+            Align::Min => self.align_min(min, max, size),
+            Align::Center => self.align(min, max),
+            Align::Max => self.align_max(min, max, size),
+        }
+    }
 }

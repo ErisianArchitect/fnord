@@ -196,10 +196,20 @@ impl Size {
         Self::new(self.width + width, self.height + height)
     }
 
+    #[inline]
+    pub const fn add(self, other: Self) -> Self {
+        self.add_dims(other.width, other.height)
+    }
+
     /// Subtract `width` from `self.width` and `height` from `self.height`.
     #[inline]
     pub const fn sub_dims(self, width: f32, height: f32) -> Self {
         Self::new(self.width - width, self.height - height)
+    }
+
+    #[inline]
+    pub const fn sub(self, other: Self) -> Self {
+        self.sub_dims(other.width, other.height)
     }
 
     /// Multiply `width` with `self.width` and `height` with `self.height`.
@@ -208,16 +218,31 @@ impl Size {
         Self::new(self.width * width, self.height * height)
     }
 
+    #[inline]
+    pub const fn mul(self, other: Self) -> Self {
+        self.mul_dims(other.width, other.height)
+    }
+
     /// Divide `self.width` by `width` and `self.height` by `height`.
     #[inline]
     pub const fn div_dims(self, width: f32, height: f32) -> Self {
         Self::new(self.width / width, self.height / height)
     }
 
+    #[inline]
+    pub const fn div(self, other: Self) -> Self {
+        self.div_dims(other.width, other.height)
+    }
+
     /// Division remainder of `self.width` by `width` and `self.height` by `height`.
     #[inline]
     pub const fn rem_dims(self, width: f32, height: f32) -> Self {
         Self::new(self.width % width, self.height % height)
+    }
+
+    #[inline]
+    pub const fn rem(self, other: Self) -> Self {
+        self.rem_dims(other.width, other.height)
     }
 
     #[inline]

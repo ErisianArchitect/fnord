@@ -236,6 +236,12 @@ impl Pos {
 
     #[must_use]
     #[inline]
+    pub const fn add_size(self, size: Size) -> Self {
+        self.add_dims(size.width, size.height)
+    }
+
+    #[must_use]
+    #[inline]
     pub const fn sub_dims(self, x: f32, y: f32) -> Self {
         Self::new(self.x - x, self.y - y)
     }
@@ -244,6 +250,12 @@ impl Pos {
     #[inline]
     pub const fn sub(self, rhs: Self) -> Self {
         self.sub_dims(rhs.x, rhs.y)
+    }
+
+    #[must_use]
+    #[inline]
+    pub const fn sub_size(self, size: Size) -> Self {
+        self.sub_dims(size.width, size.height)
     }
 
     #[must_use]
