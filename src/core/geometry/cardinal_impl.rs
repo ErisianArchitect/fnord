@@ -1,51 +1,72 @@
 use crate::core::geometry::Anchor;
 
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Rank {
+    Primary,
+    Secondary,
+}
+
+impl Rank {
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_primary(self) -> bool {
+        matches!(self, Self::Primary)
+    }
+    
+    #[inline(always)]
+    #[must_use]
+    pub const fn is_secondary(self) -> bool {
+        matches!(self, Self::Secondary)
+    }
+}
 
 /// Represents the eight directions on a compass.
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Cardinal {
-    /// East
-    E = 0,
-    /// North-East
-    Ne = 1,
-    /// North
-    N = 2,
+    // HEY! The order is important Please do not reorder.
     /// North-West
-    Nw = 3,
+    Nw = 0,
     /// West
-    W = 4,
+    W = 1,
     /// South-West
-    Sw = 5,
+    Sw = 2,
     /// South
-    S = 6,
+    S = 3,
     /// South-East
-    Se = 7,
+    Se = 4,
+    /// East
+    E = 5,
+    /// North-East
+    Ne = 6,
+    /// North
+    N = 7,
 }
 
 impl Cardinal {
-    /// Each [Cardinal] direction in clockwise order starting with East.
+    /// Each [Cardinal] direction in clockwise order starting with [Cardinal::Nw] (Norhtwest).
     pub const CW_FROM_NW: [Self; 8] = [
+        Self::Nw,
+        Self::N,
+        Self::Ne,
         Self::E,
         Self::Se,
         Self::S,
         Self::Sw,
         Self::W,
-        Self::Nw,
-        Self::N,
-        Self::Ne,
     ];
 
-    /// Each [Cardinal] direction in counter-clockwise order starting with East.
+    /// Each [Cardinal] direction in counter-clockwise order starting with [Cardinal::Nw] (Northwest).
     pub const CCW_FROM_NW: [Self; 8] = [
-        Self::E,
-        Self::Ne,
-        Self::N,
         Self::Nw,
         Self::W,
         Self::Sw,
         Self::S,
         Self::Se,
+        Self::E,
+        Self::Ne,
+        Self::N,
     ];
 
     /// The opposite direction.
@@ -53,14 +74,14 @@ impl Cardinal {
     #[must_use]
     pub const fn antipode(self) -> Self {
         match self {
-            Cardinal::E => Cardinal::W,
-            Cardinal::Ne => Cardinal::Sw,
-            Cardinal::N => Cardinal::S,
             Cardinal::Nw => Cardinal::Se,
             Cardinal::W => Cardinal::E,
             Cardinal::Sw => Cardinal::Ne,
             Cardinal::S => Cardinal::N,
             Cardinal::Se => Cardinal::Nw,
+            Cardinal::E => Cardinal::W,
+            Cardinal::Ne => Cardinal::Sw,
+            Cardinal::N => Cardinal::S,
         }
     }
 
@@ -68,14 +89,14 @@ impl Cardinal {
     #[must_use]
     pub const fn anchor(self) -> Anchor {
         match self {
-            Cardinal::E => Anchor::RightCenter,
-            Cardinal::Ne => Anchor::RightTop,
-            Cardinal::N => Anchor::TopCenter,
             Cardinal::Nw => Anchor::LeftTop,
             Cardinal::W => Anchor::LeftCenter,
             Cardinal::Sw => Anchor::LeftBottom,
             Cardinal::S => Anchor::BottomCenter,
             Cardinal::Se => Anchor::RightBottom,
+            Cardinal::E => Anchor::RightCenter,
+            Cardinal::Ne => Anchor::RightTop,
+            Cardinal::N => Anchor::TopCenter,
         }
     }
 
@@ -83,15 +104,40 @@ impl Cardinal {
     #[must_use]
     pub const fn text(self) -> &'static str {
         match self {
-            Cardinal::E => "East",
-            Cardinal::Ne => "Northeast",
-            Cardinal::N => "North",
             Cardinal::Nw => "Northwest",
             Cardinal::W => "West",
             Cardinal::Sw => "Southwest",
             Cardinal::S => "South",
             Cardinal::Se => "Southeast",
+            Cardinal::E => "East",
+            Cardinal::Ne => "Northeast",
+            Cardinal::N => "North",
         }
+    }
+    
+    #[inline]
+    #[must_use]
+    pub const fn rank(self) -> Rank {
+        const RANKS: [Rank; 2] = [
+            Rank::Secondary,
+            Rank::Primary
+        ];
+        let bits = self as u8;
+        // All of the primary directions have the 1 bit (2^0) set.
+        // None of the secondary directions have the 1 bit (2^0) set.
+        RANKS[(bits & 1) as usize]
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn is_primary(self) -> bool {
+        self.rank().is_primary()
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn is_secondary(self) -> bool {
+        self.rank().is_secondary()
     }
 
     #[inline]
@@ -141,17 +187,53 @@ impl Cardinal {
     pub const fn is_southwestward(self) -> bool {
         matches!(self, Cardinal::S | Cardinal::Sw | Cardinal::W)
     }
-
+    
     #[inline]
     #[must_use]
-    pub const fn is_primary(self) -> bool {
-        matches!(self, Cardinal::N | Cardinal::E | Cardinal::S | Cardinal::W)
+    pub const fn is_northwest(self) -> bool {
+        matches!(self, Cardinal::Nw)
     }
-
+    
     #[inline]
     #[must_use]
-    pub const fn is_secondary(self) -> bool {
-        matches!(self, Cardinal::Nw | Cardinal::Ne | Cardinal::Se | Cardinal::Sw)
+    pub const fn is_west(self) -> bool {
+        matches!(self, Cardinal::W)
+    }
+    
+    #[inline]
+    #[must_use]
+    pub const fn is_southwest(self) -> bool {
+        matches!(self, Cardinal::Sw)
+    }
+    
+    #[inline]
+    #[must_use]
+    pub const fn is_south(self) -> bool {
+        matches!(self, Cardinal::S)
+    }
+    
+    #[inline]
+    #[must_use]
+    pub const fn is_southeast(self) -> bool {
+        matches!(self, Cardinal::Se)
+    }
+    
+    #[inline]
+    #[must_use]
+    pub const fn is_east(self) -> bool {
+        matches!(self, Cardinal::E)
+    }
+    
+    #[inline]
+    #[must_use]
+    pub const fn is_northeast(self) -> bool {
+        matches!(self, Cardinal::Ne)
+    }
+    
+    #[inline]
+    #[must_use]
+    pub const fn is_north(self) -> bool {
+        matches!(self, Cardinal::N)
     }
 }
 
