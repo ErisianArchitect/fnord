@@ -14,6 +14,7 @@ pub enum Anchor {
 }
 
 impl Anchor {
+    /// Counter-clockwise perimeter starting with [Anchor::LeftTop].
     pub const PERIMETER: [Anchor; 8] = [
         Anchor::LeftTop,
         Anchor::LeftCenter,
@@ -27,6 +28,8 @@ impl Anchor {
 
     /// If the Anchor is not the Center, then this will rotate the anchor
     /// counter-clockwise by rotation.
+    #[inline]
+    #[must_use]
     pub const fn rotate(self, rotation: i32) -> Self {
         let start_index = match self {
             Anchor::LeftTop => 0,
@@ -48,6 +51,7 @@ impl Anchor {
     // bottom-center, right-bottom, right-center
     // right-top, top-center
     #[inline]
+    #[must_use]
     pub const fn invert(self) -> Self {
         match self {
             Anchor::LeftTop => Anchor::RightBottom,
@@ -63,6 +67,7 @@ impl Anchor {
     }
 
     #[inline]
+    #[must_use]
     pub const fn invert_horizontal(self) -> Self {
         match self {
             Anchor::LeftTop => Anchor::RightTop,
@@ -78,6 +83,7 @@ impl Anchor {
     }
 
     #[inline]
+    #[must_use]
     pub const fn invert_vertical(self) -> Self {
         match self {
             Anchor::LeftTop => Anchor::LeftBottom,
