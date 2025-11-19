@@ -80,6 +80,7 @@ impl<T> QuadSubdivide<T> {
 
 impl<T> std::ops::Index<(u32, u32)> for QuadSubdivide<T> {
     type Output = T;
+    #[cfg_attr(debug_assertions, track_caller)]
     fn index(&self, index: (u32, u32)) -> &Self::Output {
         debug_assert!((index.0 | index.1) <= 1);
         let index = (index.0 | (index.1 << 1)) as usize;
@@ -88,6 +89,7 @@ impl<T> std::ops::Index<(u32, u32)> for QuadSubdivide<T> {
 }
 
 impl<T> std::ops::IndexMut<(u32, u32)> for QuadSubdivide<T> {
+    #[cfg_attr(debug_assertions, track_caller)]
     fn index_mut(&mut self, index: (u32, u32)) -> &mut Self::Output {
         debug_assert!((index.0 | index.1) <= 1);
         let index = (index.0 | (index.1 << 1)) as usize;
@@ -122,9 +124,9 @@ impl Rect {
     /// The following conditions must be met for this to result in a valid [Rect]:
     /// - `min.x <= max.x`
     /// - `min.y <= max.y`
-    #[cfg_attr(debug_assertions, track_caller)]
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn from_min_max(min: Pos, max: Pos) -> Self {
         debug_assert!(min.le(max));
         Self {
@@ -138,9 +140,9 @@ impl Rect {
     /// The following conditions must be met for this to result in a valid [Rect]:
     /// - `width >= 0`
     /// - `height >= 0`
-    #[cfg_attr(debug_assertions, track_caller)]
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn new(x: f32, y: f32, width: f32, height: f32) -> Self {
         debug_assert!(Size::new(width, height).is_positive());
         Self::from_min_max(
@@ -154,9 +156,9 @@ impl Rect {
     /// The following conditions must be met for this to result in a valid [Rect]:
     /// - `size.width >= 0`
     /// - `size.height >= 0`
-    #[cfg_attr(debug_assertions, track_caller)]
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn from_min_size(min: Pos, size: Size) -> Self {
         debug_assert!(size.is_positive());
         Self::from_min_max(
@@ -169,9 +171,9 @@ impl Rect {
     /// 
     /// The following condition must be met for this to result in a valid [Rect]:
     /// - `side_length >= 0`
-    #[cfg_attr(debug_assertions, track_caller)]
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn square_from_min_size(min: Pos, side_length: f32) -> Self {
         debug_assert!(is_positive(side_length));
         Self::from_min_max(
@@ -185,9 +187,9 @@ impl Rect {
     /// The following conditions must be met for this to result in a valid [Rect]:
     /// - `size.width >= 0`
     /// - `size.height >= 0`
-    #[cfg_attr(debug_assertions, track_caller)]
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn centered(center: Pos, size: Size) -> Self {
         debug_assert!(size.is_positive());
         let half_size = size.mul_dims(0.5, 0.5);
@@ -201,9 +203,9 @@ impl Rect {
     /// 
     /// The following condition must be met for this to result in a valid [Rect]:
     /// - `side_length >= 0`
-    #[cfg_attr(debug_assertions, track_caller)]
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn centered_square(center: Pos, side_length: f32) -> Self {
         debug_assert!(is_positive(side_length));
         let half_size = side_length * 0.5;
@@ -214,9 +216,9 @@ impl Rect {
     }
 
     /// Creates a new [Rect] anchored at the given `anchor` with the given `pivot` position and the given `size`.
-    #[cfg_attr(debug_assertions, track_caller)]
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn from_anchored_pivot(anchor: Anchor, pivot: Pos, size: Size) -> Rect {
         debug_assert!(size.is_positive());
         match anchor {
@@ -280,9 +282,9 @@ impl Rect {
         }
     }
 
-    #[cfg_attr(debug_assertions, track_caller)]
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn from_points_slice(slice: &[Pos]) -> Self {
         debug_assert!(slice.len() >= 2);
         Self {
@@ -1218,6 +1220,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn add_offset(self, offset: Pos) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x + offset.x, self.min.y + offset.y),
@@ -1227,6 +1230,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn sub_offset(self, offset: Pos) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x - offset.x, self.min.y - offset.y),
@@ -1236,6 +1240,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn add_size(self, size: Size) -> Self {
         Self::from_min_max(
             self.min,
@@ -1245,18 +1250,21 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn add_size_centered(self, size: Size) -> Self {
         self.inflate2(size.width, size.height)
     }
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn add_size_anchored(self, anchor: Anchor, size: Size) -> Self {
         Self::from_anchored_pivot(anchor, self.anchor(anchor), self.size().add(size))
     }
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn sub_size(self, size: Size) -> Self {
         Self::from_min_max(
             self.min,
@@ -1266,12 +1274,14 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn sub_size_centered(self, size: Size) -> Self {
         self.deflate2(size.width, size.height)
     }
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn sub_size_anchored(self, anchor: Anchor, size: Size) -> Self {
         Self::from_anchored_pivot(anchor, self.anchor(anchor), self.size().sub(size))
     }
@@ -1294,6 +1304,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn inflate(self, expand: f32) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x - expand, self.min.y - expand),
@@ -1303,6 +1314,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn inflate2(self, x: f32, y: f32) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x - x, self.min.y - y),
@@ -1312,6 +1324,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn deflate(self, shrink: f32) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x + shrink, self.min.y + shrink),
@@ -1321,6 +1334,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn deflate2(self, x: f32, y: f32) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x + x, self.min.y + y),
@@ -1378,6 +1392,7 @@ impl Rect {
     /// Add a [Padding] to a [Rect].
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn add_padding(self, padding: Padding) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x + padding.left, self.min.y + padding.top),
@@ -1390,6 +1405,7 @@ impl Rect {
     /// What you likely want to use is `add_margin_anchored`, which keeps the rect anchored while adding the margin.
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn add_margin(self, margin: Margin) -> Self {
         Self::from_min_max(
             self.min,
@@ -1399,6 +1415,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn add_margin_centered(self, margin: Margin) -> Self {
         Self::from_min_max(
             Pos::new(
@@ -1427,6 +1444,7 @@ impl Rect {
     /// This is the inverse of `add_padding`.
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn sub_padding(self, padding: Padding) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x - padding.left, self.min.y - padding.top),
@@ -1439,6 +1457,7 @@ impl Rect {
     /// What you likely want is `sub_margin_anchored`, which keeps the rect anchored while subtracting the margin.
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn sub_margin(self, margin: Margin) -> Self {
         Self::from_min_max(
             self.min,
@@ -1448,6 +1467,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn sub_margin_centered(self, margin: Margin) -> Self {
         Self::from_min_max(
             Pos::new(
@@ -1645,6 +1665,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn left_top_adjacent(self, size: Size) -> Self {
         Self::from_min_max(
             self.min.sub_size(size),
@@ -1654,6 +1675,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn right_top_adjacent(self, size: Size) -> Self {
         Self::from_min_max(
             Pos::new(self.max.x, self.min.y - size.height),
@@ -1663,6 +1685,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn left_bottom_adjacent(self, size: Size) -> Self {
         Self::from_min_max(
             Pos::new(self.min.x - size.width, self.max.y),
@@ -1672,6 +1695,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn right_bottom_adjacent(self, size: Size) -> Self {
         Self::from_min_max(
             self.max,
@@ -1820,12 +1844,14 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn pivot_rect(self, anchor: Anchor, size: Size) -> Self {
         Self::centered(self.anchor(anchor), size)
     }
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn square_pivot_rect(self, anchor: Anchor, size: f32) -> Self {
         Self::centered_square(self.anchor(anchor), size)
     }
@@ -1842,6 +1868,7 @@ impl Rect {
     /// by scaling `size`.
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn scale_inside(self, aspect_ratio: AspectRatio) -> Self {
         // determine which scaling method must be used.
         let msize = self.size();
@@ -1872,6 +1899,7 @@ impl Rect {
     /// by scaling `size`.
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn scale_outside(self, aspect_ratio: AspectRatio) -> Self {
         // determine which scaling method must be used.
         let msize = self.size();
@@ -1886,6 +1914,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn lerp(self, other: Rect, t: f32) -> Self {
         Self::from_min_max(
             self.min.lerp(other.min, t),
@@ -1895,6 +1924,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn clamped_lerp(self, other: Rect, t: f32) -> Self {
         self.lerp(other, t.clamp(0.0, 1.0))
     }
@@ -2077,12 +2107,14 @@ impl Rect {
     }
 
     #[inline]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn swap_lengths_anchored(&mut self, anchor: Anchor) {
         *self = Self::from_anchored_pivot(anchor, self.anchor(anchor), self.size().swap_dims());
     }
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn with_swapped_lengths_anchored(mut self, anchor: Anchor) -> Self {
         self.swap_lengths_anchored(anchor);
         self
@@ -2091,6 +2123,7 @@ impl Rect {
     /// Returns `(left, right)`
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn split_horizontal(self) -> (Self, Self) {
         let middle = self.min.x.midpoint(self.max.x);
         (
@@ -2108,6 +2141,7 @@ impl Rect {
     /// Returns `(top, bottom)`
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn split_vertical(self) -> (Self, Self) {
         let middle = self.min.y.midpoint(self.max.y);
         (
@@ -2125,6 +2159,7 @@ impl Rect {
     /// Subdivide the Rect into four quadrants.
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn subdivide_quad(self) -> QuadSubdivide<Self> {
         let mid_x = self.min.x.midpoint(self.max.x);
         let mid_y = self.min.y.midpoint(self.max.y);
@@ -2371,6 +2406,7 @@ impl Rect {
     // Containing Pos
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub fn subdivision_containing_with_coord(self, pos: Pos, cols: u32, rows: u32) -> Option<((u32, u32), Self)> {
         if cols == 0 || rows == 0 || !self.contains(pos) {
             return None;
@@ -2395,6 +2431,7 @@ impl Rect {
     // Containing Pos
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub fn subdivision_containing(self, pos: Pos, cols: u32, rows: u32) -> Option<Self> {
         self.subdivision_containing_with_coord(pos, cols, rows).map(|(_, result)| result)
     }
@@ -2402,6 +2439,7 @@ impl Rect {
     // Containing Rect
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub fn subdivision_containing_rect_with_coord(self, rect: Self, cols: u32, rows: u32) -> Option<((u32, u32), Self)> {
         if !self.contains_rect(rect) {
             return None;
@@ -2428,12 +2466,14 @@ impl Rect {
     // Containing Rect
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub fn subdivision_containing_rect(self, rect: Self, cols: u32, rows: u32) -> Option<Self> {
         self.subdivision_containing_rect_with_coord(rect, cols, rows).map(|(_, rect)| rect)
     }
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub fn floor(self) -> Self {
         Self::from_min_max(
             self.min.floor(),
@@ -2443,6 +2483,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub fn ceil(self) -> Self {
         Self::from_min_max(
             self.min.ceil(),
@@ -2453,6 +2494,7 @@ impl Rect {
     /// Floors the min bound and ceils the max bound.
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub fn floor_ceil(self) -> Self {
         Self::from_min_max(
             self.min.floor(),
@@ -2463,6 +2505,7 @@ impl Rect {
     /// Ceils the min bound and floors the max bound.
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub fn ceil_floor(self) -> Self {
         Self::from_min_max(
             self.min.ceil(),
@@ -2472,6 +2515,7 @@ impl Rect {
 
     #[inline]
     #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub fn round(self) -> Self {
         Self::from_min_max(
             self.min.round(),
