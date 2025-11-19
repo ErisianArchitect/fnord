@@ -8,14 +8,14 @@ pub enum Rank {
 }
 
 impl Rank {
-    #[inline(always)]
     #[must_use]
+    #[inline(always)]
     pub const fn is_primary(self) -> bool {
         matches!(self, Self::Primary)
     }
     
-    #[inline(always)]
     #[must_use]
+    #[inline(always)]
     pub const fn is_secondary(self) -> bool {
         matches!(self, Self::Secondary)
     }
@@ -115,123 +115,123 @@ impl Cardinal {
         }
     }
     
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn rank(self) -> Rank {
         const RANKS: [Rank; 2] = [
             Rank::Secondary,
             Rank::Primary
         ];
-        let bits = self as u8;
+        let bits = self as usize;
         // All of the primary directions have the 1 bit (2^0) set.
         // None of the secondary directions have the 1 bit (2^0) set.
-        RANKS[(bits & 1) as usize]
+        RANKS[bits & 1]
     }
 
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn is_primary(self) -> bool {
         self.rank().is_primary()
     }
 
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn is_secondary(self) -> bool {
         self.rank().is_secondary()
     }
 
-    #[inline]
     #[must_use]
-    pub const fn is_northward(self) -> bool {
-        matches!(self, Cardinal::Nw | Cardinal::N | Cardinal::Ne)
-    }
-
-    #[inline]
-    #[must_use]
-    pub const fn is_eastward(self) -> bool {
-        matches!(self, Cardinal::Ne | Cardinal::E | Cardinal::Se)
-    }
-
-    #[inline]
-    #[must_use]
-    pub const fn is_southward(self) -> bool {
-        matches!(self, Cardinal::Se | Cardinal::S | Cardinal::Sw)
-    }
-
-    #[inline]
-    #[must_use]
-    pub const fn is_westward(self) -> bool {
-        matches!(self, Cardinal::Sw | Cardinal::W | Cardinal::Nw)
-    }
-
-    #[inline]
-    #[must_use]
+    #[inline(always)]
     pub const fn is_northwestward(self) -> bool {
         matches!(self, Cardinal::Nw | Cardinal::N | Cardinal::W)
     }
 
-    #[inline]
     #[must_use]
-    pub const fn is_northeastward(self) -> bool {
-        matches!(self, Cardinal::N | Cardinal::Ne | Cardinal::E)
+    #[inline(always)]
+    pub const fn is_westward(self) -> bool {
+        matches!(self, Cardinal::Sw | Cardinal::W | Cardinal::Nw)
     }
 
-    #[inline]
     #[must_use]
+    #[inline(always)]
+    pub const fn is_southwestward(self) -> bool {
+        matches!(self, Cardinal::S | Cardinal::Sw | Cardinal::W)
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub const fn is_southward(self) -> bool {
+        matches!(self, Cardinal::Se | Cardinal::S | Cardinal::Sw)
+    }
+
+    #[must_use]
+    #[inline(always)]
     pub const fn is_southeastward(self) -> bool {
         matches!(self, Cardinal::E | Cardinal::Se | Cardinal::S)
     }
 
-    #[inline]
     #[must_use]
-    pub const fn is_southwestward(self) -> bool {
-        matches!(self, Cardinal::S | Cardinal::Sw | Cardinal::W)
+    #[inline(always)]
+    pub const fn is_eastward(self) -> bool {
+        matches!(self, Cardinal::Ne | Cardinal::E | Cardinal::Se)
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub const fn is_northeastward(self) -> bool {
+        matches!(self, Cardinal::N | Cardinal::Ne | Cardinal::E)
+    }
+
+    #[must_use]
+    #[inline(always)]
+    pub const fn is_northward(self) -> bool {
+        matches!(self, Cardinal::Nw | Cardinal::N | Cardinal::Ne)
     }
     
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn is_northwest(self) -> bool {
         matches!(self, Cardinal::Nw)
     }
     
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn is_west(self) -> bool {
         matches!(self, Cardinal::W)
     }
     
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn is_southwest(self) -> bool {
         matches!(self, Cardinal::Sw)
     }
     
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn is_south(self) -> bool {
         matches!(self, Cardinal::S)
     }
     
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn is_southeast(self) -> bool {
         matches!(self, Cardinal::Se)
     }
     
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn is_east(self) -> bool {
         matches!(self, Cardinal::E)
     }
     
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn is_northeast(self) -> bool {
         matches!(self, Cardinal::Ne)
     }
     
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn is_north(self) -> bool {
         matches!(self, Cardinal::N)
     }
@@ -240,16 +240,7 @@ impl Cardinal {
 impl std::fmt::Display for Cardinal {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Cardinal::E => write!(f, "East"),
-            Cardinal::Ne => write!(f, "Northeast"),
-            Cardinal::N => write!(f, "North"),
-            Cardinal::Nw => write!(f, "Northwest"),
-            Cardinal::W => write!(f, "West"),
-            Cardinal::Sw => write!(f, "Southwest"),
-            Cardinal::S => write!(f, "South"),
-            Cardinal::Se => write!(f, "Southeast"),
-        }
+        write!(f, "{}", self.text())
     }
 }
 
@@ -257,14 +248,14 @@ impl std::fmt::Debug for Cardinal {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Cardinal::E => write!(f, "Cardinal::E"),
-            Cardinal::Ne => write!(f, "Cardinal::Ne"),
-            Cardinal::N => write!(f, "Cardinal::N"),
             Cardinal::Nw => write!(f, "Cardinal::Nw"),
             Cardinal::W => write!(f, "Cardinal::W"),
             Cardinal::Sw => write!(f, "Cardinal::Sw"),
             Cardinal::S => write!(f, "Cardinal::S"),
             Cardinal::Se => write!(f, "Cardinal::Se"),
+            Cardinal::E => write!(f, "Cardinal::E"),
+            Cardinal::Ne => write!(f, "Cardinal::Ne"),
+            Cardinal::N => write!(f, "Cardinal::N"),
         }
     }
 }
@@ -272,120 +263,191 @@ impl std::fmt::Debug for Cardinal {
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PrimaryCardinal {
-    East = 0,
-    North = 1,
-    West = 2,
-    South = 3,
+    North = 0,
+    West = 1,
+    South = 2,
+    East = 3,
 }
 
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Intercardinal {
-    Ne = 0,
-    Nw = 1,
-    Sw = 2,
-    Se = 3,
+    Nw = 0,
+    Sw = 1,
+    Se = 2,
+    Ne = 3,
 }
 
 impl PrimaryCardinal {
-    pub const CW_FROM_EAST: [Self; 4] = [
+    pub const CW_FROM_NORTH: [Self; 4] = [
+        Self::North,
         Self::East,
         Self::South,
         Self::West,
-        Self::North,
     ];
 
-    pub const CCW_FROM_EAST: [Self; 4] = [
-        Self::East,
+    pub const CCW_FROM_NORTH: [Self; 4] = [
         Self::North,
         Self::West,
         Self::South,
+        Self::East,
     ];
 
     /// Returns the opposite direction.
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn antipode(self) -> Self {
         match self {
-            PrimaryCardinal::East => Self::West,
             PrimaryCardinal::North => Self::South,
             PrimaryCardinal::West => Self::East,
             PrimaryCardinal::South => Self::North,
+            PrimaryCardinal::East => Self::West,
         }
     }
 
-    /// Determines if the direction is either North or South.
-    #[inline]
     #[must_use]
-    pub const fn is_longitudinal(self) -> bool {
-        matches!(self, Self::North | Self::South)
-    }
-
-    /// Determines if the direction is either East or West.
-    #[inline]
-    #[must_use]
-    pub const fn is_lateral(self) -> bool {
-        matches!(self, Self::East | Self::West)
-    }
-
-    #[inline]
-    #[must_use]
+    #[inline(always)]
     pub const fn is_north_or_west(self) -> bool {
         matches!(self, Self::North | Self::West)
     }
 
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn is_north_or_east(self) -> bool {
         matches!(self, Self::North | Self::East)
     }
 
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn is_south_or_east(self) -> bool {
         matches!(self, Self::East | Self::South)
     }
 
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn is_south_or_west(self) -> bool {
         matches!(self, Self::South | Self::West)
+    }
+    
+    #[must_use]
+    #[inline(always)]
+    pub const fn is_north_or_south(self) -> bool {
+        matches!(self, Self::North | Self::South)
+    }
+    
+    #[must_use]
+    #[inline(always)]
+    pub const fn is_west_or_east(self) -> bool {
+        matches!(self, Self::West | Self::East)
+    }
+    
+    #[must_use]
+    #[inline(always)]
+    pub const fn is_north(self) -> bool {
+        matches!(self, Self::North)
+    }
+    
+    #[must_use]
+    #[inline(always)]
+    pub const fn is_west(self) -> bool {
+        matches!(self, Self::West)
+    }
+    
+    #[must_use]
+    #[inline(always)]
+    pub const fn is_south(self) -> bool {
+        matches!(self, Self::South)
+    }
+    
+    #[must_use]
+    #[inline(always)]
+    pub const fn is_east(self) -> bool {
+        matches!(self, Self::East)
+    }
+
+    /// Determines if the direction is either North or South.
+    #[must_use]
+    #[inline(always)]
+    pub const fn is_longitudinal(self) -> bool {
+        self.is_north_or_south()
+    }
+
+    /// Determines if the direction is either West or East.
+    #[must_use]
+    #[inline(always)]
+    pub const fn is_lateral(self) -> bool {
+        self.is_west_or_east()
     }
 }
 
 impl Intercardinal {
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn antipode(self) -> Self {
         match self {
-            Intercardinal::Ne => Self::Sw,
             Intercardinal::Nw => Self::Se,
             Intercardinal::Sw => Self::Ne,
             Intercardinal::Se => Self::Nw,
+            Intercardinal::Ne => Self::Sw,
         }
     }
 
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn is_northward(self) -> bool {
         matches!(self, Self::Nw | Self::Ne)
     }
 
-    #[inline]
     #[must_use]
-    pub const fn is_eastward(self) -> bool {
-        matches!(self, Self::Ne | Self::Se)
+    #[inline(always)]
+    pub const fn is_westward(self) -> bool {
+        matches!(self, Self::Nw | Self::Sw)
     }
 
-    #[inline]
     #[must_use]
+    #[inline(always)]
     pub const fn is_southward(self) -> bool {
         matches!(self, Self::Se | Self::Sw)
     }
 
-    #[inline]
     #[must_use]
-    pub const fn is_westward(self) -> bool {
-        matches!(self, Self::Nw | Self::Sw)
+    #[inline(always)]
+    pub const fn is_eastward(self) -> bool {
+        matches!(self, Self::Ne | Self::Se)
+    }
+    
+    #[must_use]
+    #[inline(always)]
+    pub const fn has_cardinality(self, cardinal: PrimaryCardinal) -> bool {
+        match cardinal {
+            PrimaryCardinal::North => self.is_northward(),
+            PrimaryCardinal::West => self.is_westward(),
+            PrimaryCardinal::South => self.is_southward(),
+            PrimaryCardinal::East => self.is_eastward(),
+        }
+    }
+    
+    #[must_use]
+    #[inline(always)]
+    pub const fn is_nw(self) -> bool {
+        matches!(self, Self::Nw)
+    }
+    
+    #[must_use]
+    #[inline(always)]
+    pub const fn is_sw(self) -> bool {
+        matches!(self, Self::Sw)
+    }
+    
+    #[must_use]
+    #[inline(always)]
+    pub const fn is_se(self) -> bool {
+        matches!(self, Self::Se)
+    }
+    
+    #[must_use]
+    #[inline(always)]
+    pub const fn is_ne(self) -> bool {
+        matches!(self, Self::Ne)
     }
 }
