@@ -20,6 +20,7 @@ pub struct Size {
 
 /// Creates a new [Size] from the given `width` and `height`.
 #[inline]
+#[must_use]
 pub const fn size(width: f32, height: f32) -> Size {
     Size { width, height }
 }
@@ -49,12 +50,14 @@ impl Size {
 
     /// Create a new [Size] from the given `width` and `height`.
     #[inline]
+    #[must_use]
     pub const fn new(width: f32, height: f32) -> Self {
         Self { width, height }
     }
 
     /// Create a new [Size] with equal `width` and `height`.
     #[inline]
+    #[must_use]
     pub const fn square(side_length: f32) -> Self {
         Self { width: side_length, height: side_length }
     }
@@ -62,51 +65,60 @@ impl Size {
     // This method might fail in some way.
     /// Gets the area of the [Size]. This is the width multiplied by the height.
     #[inline]
+    #[must_use]
     pub const fn area(self) -> f32 {
         self.width * self.height
     }
 
     #[inline]
+    #[must_use]
     pub const fn half(self) -> Self {
         Self::new(half(self.width), half(self.height))
     }
 
     #[inline]
+    #[must_use]
     pub const fn half_width(self) -> f32 {
         half(self.width)
     }
 
     #[inline]
+    #[must_use]
     pub const fn half_height(self) -> f32 {
         half(self.height)
     }
 
     /// Converts the [Size] into a tuple.
     #[inline]
+    #[must_use]
     pub const fn to_tuple(self) -> (f32, f32) {
         (self.width, self.height)
     }
 
     /// Creates a [Size] from a tuple.
     #[inline]
+    #[must_use]
     pub const fn from_tuple((x, y): (f32, f32)) -> Self {
         Self::new(x, y)
     }
 
     /// Converts the [Size] into an array.
     #[inline]
+    #[must_use]
     pub const fn to_array(self) -> [f32; 2] {
         [self.width, self.height]
     }
 
     /// Creates a [Size] from an array.
     #[inline]
+    #[must_use]
     pub const fn from_array([x, y]: [f32; 2]) -> Self {
         Self::new(x, y)
     }
 
     /// Returns the size as a slice of [f32] where `slice[0]` is width and `slice[1]` is height.
     #[inline]
+    #[must_use]
     pub const fn as_slice<'a>(&'a self) -> &'a [f32] {
         unsafe {
             std::slice::from_raw_parts(self as *const Size as *const f32, 2)
@@ -115,6 +127,7 @@ impl Size {
 
     /// Returns the size as a mutable slice of [f32] where `slice[0]` is width and `slice[1]` is height.
     #[inline]
+    #[must_use]
     pub const fn as_mut_slice<'a>(&'a mut self) -> &'a mut [f32] {
         unsafe {
             std::slice::from_raw_parts_mut(self as *mut Size as *mut f32, 2)
@@ -125,6 +138,7 @@ impl Size {
     /// 
     /// This method may be unreliable due to floating point arithemetic imprecision. Try `is_square_fuzzy` if you're dealing with precision issues.
     #[inline]
+    #[must_use]
     pub const fn is_square(self) -> bool {
         self.width == self.height
     }
@@ -132,60 +146,76 @@ impl Size {
     /// Determines if a size is as close to being square as `error`. This method is not reliable due to floating point weirdness.
     /// I advise that you use an `error` value that is greater than the value you expect. For example, if you want within `0.1`, use `0.11` or `0.109` etc..
     #[inline]
+    #[must_use]
     pub const fn is_square_fuzzy(self, error: f32) -> bool {
-        (self.width.max(self.height) - self.height.min(self.width)) <= error
+        (self.width - self.height).abs() <= error
     }
 
     /// Determines if the width is greater than the height.
     #[inline]
+    #[must_use]
     pub const fn is_horizontal(self) -> bool {
         self.width > self.height
     }
 
     /// Determines if the height is greater than the width.
     #[inline]
+    #[must_use]
     pub const fn is_vertical(self) -> bool {
         self.height > self.width
     }
 
     #[inline]
+    #[must_use]
     pub const fn aspect_ratio(self) -> AspectRatio {
         AspectRatio::from_dims(self.width, self.height)
     }
 
     #[inline]
+    #[must_use]
     pub const fn is_positive(self) -> bool {
         self.width >= 0.0 && self.height >= 0.0
     }
 
     #[inline]
+    #[must_use]
     pub const fn negate(self) -> Self {
         Self::new(-self.width, -self.height)
     }
 
     #[inline]
+    #[must_use]
     pub const fn scale(self, scalar: f32) -> Self {
         Self::new(self.width * scalar, self.height * scalar)
     }
 
     #[inline]
+    #[must_use]
     pub const fn min_dims(self) -> f32 {
         self.width.min(self.height)
     }
 
     #[inline]
+    #[must_use]
     pub const fn max_dims(self) -> f32 {
         self.width.max(self.height)
     }
 
     #[inline]
+    #[must_use]
     pub const fn inner_square(self) -> Self {
-        let side_length = self.min_dims();
-        Self::new(side_length, side_length)
+        Self::square(self.min_dims())
+    }
+    
+    #[inline]
+    #[must_use]
+    pub const fn outer_square(self) -> Self {
+        Self::square(self.max_dims())
     }
 
     /// Swaps the width and height.
     #[inline]
+    #[must_use]
     pub const fn swap_dims(self) -> Size {
         Self::new(self.height, self.height)
     }
@@ -197,55 +227,65 @@ impl Size {
     }
 
     #[inline]
+    #[must_use]
     pub const fn add(self, other: Self) -> Self {
         self.add_dims(other.width, other.height)
     }
 
     /// Subtract `width` from `self.width` and `height` from `self.height`.
     #[inline]
+    #[must_use]
     pub const fn sub_dims(self, width: f32, height: f32) -> Self {
         Self::new(self.width - width, self.height - height)
     }
 
     #[inline]
+    #[must_use]
     pub const fn sub(self, other: Self) -> Self {
         self.sub_dims(other.width, other.height)
     }
 
     /// Multiply `width` with `self.width` and `height` with `self.height`.
     #[inline]
+    #[must_use]
     pub const fn mul_dims(self, width: f32, height: f32) -> Self {
         Self::new(self.width * width, self.height * height)
     }
 
     #[inline]
+    #[must_use]
     pub const fn mul(self, other: Self) -> Self {
         self.mul_dims(other.width, other.height)
     }
 
     /// Divide `self.width` by `width` and `self.height` by `height`.
     #[inline]
+    #[must_use]
     pub const fn div_dims(self, width: f32, height: f32) -> Self {
         Self::new(self.width / width, self.height / height)
     }
 
     #[inline]
+    #[must_use]
     pub const fn div(self, other: Self) -> Self {
         self.div_dims(other.width, other.height)
     }
 
     /// Division remainder of `self.width` by `width` and `self.height` by `height`.
     #[inline]
+    #[must_use]
     pub const fn rem_dims(self, width: f32, height: f32) -> Self {
         Self::new(self.width % width, self.height % height)
     }
 
     #[inline]
+    #[must_use]
     pub const fn rem(self, other: Self) -> Self {
         self.rem_dims(other.width, other.height)
     }
 
     #[inline]
+    #[must_use]
     pub const fn lerp(self, other: Size, t: f32) -> Self {
         Self::new(
             lerp(self.width, other.width, t),
@@ -254,11 +294,13 @@ impl Size {
     }
 
     #[inline]
+    #[must_use]
     pub const fn clamped_lerp(self, other: Size, t: f32) -> Self {
         self.lerp(other, t.clamp(0.0, 1.0))
     }
 
     #[inline]
+    #[must_use]
     pub const fn add_margin(self, margin: Margin) -> Self {
         Self::new(
             self.width + margin.x(),
@@ -267,6 +309,7 @@ impl Size {
     }
 
     #[inline]
+    #[must_use]
     pub const fn sub_margin(self, margin: Margin) -> Self {
         Self::new(
             self.width - margin.x(),
@@ -275,6 +318,7 @@ impl Size {
     }
 
     #[inline]
+    #[must_use]
     pub const fn add_padding(self, padding: Padding) -> Self {
         Self::new(
             self.width - padding.x(),
@@ -283,6 +327,7 @@ impl Size {
     }
 
     #[inline]
+    #[must_use]
     pub const fn sub_padding(self, padding: Padding) -> Self {
         Self::new(
             self.width + padding.x(),
@@ -291,11 +336,31 @@ impl Size {
     }
 
     #[inline]
+    #[must_use]
     pub fn map<R, F: FnOnce(f32, f32) -> R>(self, map: F) -> R {
         map(self.width, self.height)
     }
+    
+    #[inline]
+    #[must_use]
+    pub fn map_wh<W: FnOnce(f32) -> f32, H: FnOnce(f32) -> f32>(self, w: W, h: H) -> Self {
+        Self::new(
+            w(self.width),
+            h(self.height),
+        )
+    }
+    
+    #[inline]
+    #[must_use]
+    pub fn map_wh_each<F: Fn(f32) -> f32>(self, map: F) -> Self {
+        Self::new(
+            map(self.width),
+            map(self.height),
+        )
+    }
 
     #[inline]
+    #[must_use]
     pub fn test<P: FnOnce(f32, f32) -> bool>(self, pred: P) -> bool {
         pred(self.width, self.height)
     }
