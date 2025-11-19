@@ -5,6 +5,14 @@ pub struct AspectRatio {
     pub ratio: f32
 }
 
+/// # WARNING
+/// This will panic if `height` is `0`.
+#[inline]
+#[must_use]
+pub const fn aspect_ratio(width: f32, height: f32) -> AspectRatio {
+    AspectRatio { ratio: width / height }
+}
+
 impl AspectRatio {
     #[inline]
     #[must_use]
@@ -12,6 +20,8 @@ impl AspectRatio {
         Self { ratio }
     }
 
+    /// # WARNING
+    /// This will panic if `height` is `0`.
     #[inline]
     #[must_use]
     pub const fn from_dims(width: f32, height: f32) -> Self {
