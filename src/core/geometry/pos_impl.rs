@@ -50,52 +50,56 @@ impl Pos {
     pub const HALF_NEG_X_POS_Y: Self = Self::new(0.5, -0.5);
     pub const HALF_POS_X_NEG_Y: Self = Self::new(-0.5, 0.5);
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn new(x: f32, y: f32) -> Self {
         Self { x, y }
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn splat(splat: f32) -> Self {
         Self { x: splat, y: splat }
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn from_angle(angle: f32) -> Self {
         let (sin, cos) = angle.sin_cos();
         // y down system means -sin.
         Self { x: cos, y: -sin }
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn rect(self, size: Size) -> Rect {
         Rect::from_min_size(self, size)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn centered_rect(self, size: Size) -> Rect {
         Rect::centered(self, size)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn square(self, size: f32) -> Rect {
         Rect::square_from_min_size(self, size)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn centered_square(self, size: f32) -> Rect {
         Rect::centered_square(self, size)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn x(self) -> f32 {
         self.x
     }
@@ -105,15 +109,15 @@ impl Pos {
         self.x = x;
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn with_x(mut self, x: f32) -> Self {
         self.set_x(x);
         self
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn y(self) -> f32 {
         self.y
     }
@@ -123,36 +127,36 @@ impl Pos {
         self.y = y;
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn with_y(mut self, y: f32) -> Self {
         self.set_y(y);
         self
     }
 
     /// Returns a self with the x and y swapped.
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn yx(self) -> Self {
         Pos::new(self.y, self.x)
     }
 
     /// Sets `(self.x, self.y)` to `(yx.y, yx.x)`.
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn set_yx(&mut self, yx: Pos) {
         self.x = yx.y;
         self.y = yx.x;
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn length_squared(self) -> f32 {
         self.x * self.x + self.y * self.y
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn length(self) -> f32 {
         self.length_squared().sqrt()
     }
@@ -165,36 +169,41 @@ impl Pos {
         self.y *= mult;
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn with_length(mut self, length: f32) -> Self {
         self.set_length(length);
         self
     }
 
     #[inline]
+    #[must_use]
     pub const fn distance_squared(self, other: Pos) -> f32 {
         other.sub_dims(self.x, self.y).length_squared()
     }
 
     #[inline]
+    #[must_use]
     pub fn distance(self, other: Pos) -> f32 {
         self.distance_squared(other).sqrt()
     }
 
     /// Returns the angle in radians. (`x` right, `y` down)
     #[inline]
+    #[must_use]
     pub fn angle(self) -> f32 {
         <f32>::atan2(-self.y, self.x)
     }
 
     #[inline]
+    #[must_use]
     pub fn normalized_angle(self) -> f32 {
         normalize_angle(self.angle())
     }
 
     /// Rotates the [Pos] 90 degrees to the right.
     #[inline]
+    #[must_use]
     pub fn perp_cw(self) -> Self {
         // (0.5, 0.25) becomes (-0.25, 0.5)
         Self::new(-self.y, self.x)
@@ -202,19 +211,21 @@ impl Pos {
 
     /// Rotates the [Pos] 90 degrees to the left.
     #[inline]
+    #[must_use]
     pub fn perp_ccw(self) -> Self {
         Self::new(self.y, self.x)
     }
 
     /// Assumes that `self` and `normal` are normalized.
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn reflect(self, normal: Self) -> Self {
         self.sub(self.mul(normal).mul_dims(2.0, 2.0).mul(normal))
     }
 
     /// Assumes that both `self` and `rhs` are unit vectors, and rotates `self` by the rotation of `rhs`.
     #[inline]
+    #[must_use]
     pub fn rotate_by(self, rhs: Self) -> Self {
         Self {
             x: self.x * rhs.x - self.y * rhs.y,
@@ -222,56 +233,56 @@ impl Pos {
         }
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn add_dims(self, x: f32, y: f32) -> Self {
         Self::new(self.x + x, self.y + y)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn add(self, rhs: Self) -> Self {
         self.add_dims(rhs.x, rhs.y)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn add_size(self, size: Size) -> Self {
         self.add_dims(size.width, size.height)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn sub_dims(self, x: f32, y: f32) -> Self {
         Self::new(self.x - x, self.y - y)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn sub(self, rhs: Self) -> Self {
         self.sub_dims(rhs.x, rhs.y)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn sub_size(self, size: Size) -> Self {
         self.sub_dims(size.width, size.height)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn mul_dims(self, x: f32, y: f32) -> Self {
         Self::new(self.x * x, self.y * y)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn mul(self, rhs: Self) -> Self {
         self.mul_dims(rhs.x, rhs.y)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn mul_add_dims(self, mul_x: f32, mul_y: f32, add_x: f32, add_y: f32) -> Self {
         Self::new(
             self.x.mul_add(mul_x, add_x),
@@ -279,56 +290,56 @@ impl Pos {
         )
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn mul_add(self, mul: Self, add: Self) -> Self {
         self.mul_add_dims(mul.x, mul.y, add.x, add.y)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn div_dims(self, x: f32, y: f32) -> Self {
         Self::new(self.x / x, self.y / y)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn div(self, rhs: Self) -> Self {
         self.div_dims(rhs.x, rhs.y)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn rem_dims(self, x: f32, y: f32) -> Self {
         Self::new(self.x % x, self.y % y)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn rem(self, rhs: Self) -> Self {
         self.rem_dims(rhs.x, rhs.y)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn rem_euclid_dims(self, x: f32, y: f32) -> Self {
         Self::new(self.x.rem_euclid(x), self.y.rem_euclid(y))
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn rem_euclid(self, rhs: Self) -> Self {
         self.rem_euclid_dims(rhs.x, rhs.y)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn div_euclid_dims(self, x: f32, y: f32) -> Self {
         Self::new(self.x.div_euclid(x), self.y.div_euclid(y))
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn div_euclid(self, rhs: Self) -> Self {
         self.div_euclid_dims(rhs.x, rhs.y)
     }
@@ -340,43 +351,49 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub const fn negated(self) -> Self {
         Self::new(-self.x, -self.y)
     }
 
     #[inline]
+    #[must_use]
     pub const fn to_tuple(self) -> (f32, f32) {
         (self.x, self.y)
     }
 
     #[inline]
+    #[must_use]
     pub const fn from_tuple((x, y): (f32, f32)) -> Self {
         Self::new(x, y)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn to_ituple(self) -> (i32, i32) {
         (self.x as _, self.y as _)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn from_ituple((x, y): (i32, i32)) -> Self {
         Self::new(x as _, y as _)
     }
 
     #[inline]
+    #[must_use]
     pub const fn to_array(self) -> [f32; 2] {
         [self.x, self.y]
     }
 
     #[inline]
+    #[must_use]
     pub const fn from_array([x, y]: [f32; 2]) -> Self {
         Self::new(x, y)
     }
 
     #[inline]
+    #[must_use]
     pub const fn as_slice<'a>(&'a self) -> &'a [f32] {
         unsafe {
             std::slice::from_raw_parts(self as *const Self as *const f32, 2)
@@ -384,6 +401,7 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub const fn as_mut_slice<'a>(&'a mut self) -> &'a mut [f32] {
         unsafe {
             std::slice::from_raw_parts_mut(self as *mut Self as *mut f32, 2)
@@ -392,6 +410,7 @@ impl Pos {
 
     /// Returns the min of both components.
     #[inline]
+    #[must_use]
     pub const fn min(self, rhs: Self) -> Self {
         Self::new(
             self.x.min(rhs.x),
@@ -401,6 +420,7 @@ impl Pos {
 
     /// Returns the max of both components.
     #[inline]
+    #[must_use]
     pub const fn max(self, rhs: Self) -> Self {
         Self::new(
             self.x.max(rhs.x),
@@ -410,14 +430,25 @@ impl Pos {
 
     /// Returns `(min, max)`.
     #[inline]
+    #[must_use]
     pub const fn min_max(self, rhs: Self) -> (Self, Self) {
         (
             self.min(rhs),
             rhs.max(self),
         )
     }
+    
+    #[inline]
+    #[must_use]
+    pub const fn max_min(self, rhs: Self) -> (Self, Self) {
+        (
+            self.max(rhs),
+            rhs.min(self),
+        )
+    }
 
     #[inline]
+    #[must_use]
     pub fn floor(self) -> Self {
         Self::new(
             self.x.floor(),
@@ -426,6 +457,7 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub fn ceil(self) -> Self {
         Self::new(
             self.x.ceil(),
@@ -434,6 +466,7 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub fn round(self) -> Self {
         Self::new(
             self.x.round(),
@@ -442,6 +475,7 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub fn rount_ties_even(self) -> Self {
         Self::new(
             self.x.round_ties_even(),
@@ -449,8 +483,8 @@ impl Pos {
         )
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn to_degrees(self) -> Self {
         Self::new(
             self.x.to_degrees(),
@@ -458,8 +492,8 @@ impl Pos {
         )
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn to_radians(self) -> Self {
         Self::new(
             self.x.to_radians(),
@@ -468,6 +502,7 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub const fn abs(self) -> Self {
         Self::new(
             self.x.abs(),
@@ -476,6 +511,7 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub fn cbrt(self) -> Self {
         Self::new(
             self.x.cbrt(),
@@ -483,8 +519,8 @@ impl Pos {
         )
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn copysign(self, sign: f32) -> Self {
         Self::new(
             self.x.copysign(sign),
@@ -492,8 +528,8 @@ impl Pos {
         )
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn copysign2(self, sign: Pos) -> Self {
         Self::new(
             self.x.copysign(sign.x),
@@ -501,8 +537,8 @@ impl Pos {
         )
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn copy_x_sign(self) -> Self {
         Self::new(
             self.x,
@@ -510,6 +546,7 @@ impl Pos {
         )
     }
 
+    #[inline]
     #[must_use]
     pub fn copy_y_sign(self) -> Self {
         Self::new(
@@ -518,8 +555,8 @@ impl Pos {
         )
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn exp(self) -> Self {
         Self::new(
             self.x.exp(),
@@ -527,8 +564,8 @@ impl Pos {
         )
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn exp2(self) -> Self {
         Self::new(
             self.x.exp2(),
@@ -536,27 +573,27 @@ impl Pos {
         )
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn atan2_xy(self) -> f32 {
         self.x.atan2(self.y)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn atan2_yx(self) -> f32 {
         self.y.atan2(self.x)
     }
 
     /// Snaps to the nearest point on a [Rect].
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn snap_to_rect(self, rect: Rect) -> Pos {
         rect.closest_point(self)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn next_up(self) -> Self {
         Self::new(
             self.x.next_up(),
@@ -564,8 +601,8 @@ impl Pos {
         )
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn next_down(self) -> Self {
         Self::new(
             self.x.next_down(),
@@ -573,8 +610,8 @@ impl Pos {
         )
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn signum(self) -> Self {
         Self::new(
             self.x.signum(),
@@ -582,8 +619,8 @@ impl Pos {
         )
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn recip(self) -> Self {
         Self::new(
             self.x.recip(),
@@ -591,8 +628,8 @@ impl Pos {
         )
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn classify(self) -> [FpCategory; 2] {
         [
             self.x.classify(),
@@ -602,8 +639,8 @@ impl Pos {
 
     // also, XOR, and versions returning [bool; 2]
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_finite(self) -> [bool; 2] {
         [
             self.x.is_finite(),
@@ -611,44 +648,44 @@ impl Pos {
         ]
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_finite_or(self) -> bool {
         self.x.is_finite() || self.y.is_finite()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_finite_and(self) -> bool {
         self.x.is_finite() && self.y.is_finite()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_finite_xor(self) -> bool {
         self.x.is_finite() ^ self.y.is_finite()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_finite_nor(self) -> bool {
         !self.is_finite_or()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_finite_nand(self) -> bool {
         !self.is_finite_and()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_finite_xnor(self) -> bool {
         self.x.is_finite() == self.y.is_finite()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_infinite(self) -> [bool; 2] {
         [
             self.x.is_infinite(),
@@ -656,44 +693,44 @@ impl Pos {
         ]
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_infinite_or(self) -> bool {
         self.x.is_infinite() || self.y.is_infinite()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_infinite_and(self) -> bool {
         self.x.is_infinite() && self.y.is_infinite()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_infinite_xor(self) -> bool {
         self.x.is_infinite() ^ self.y.is_infinite()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_infinite_nor(self) -> bool {
         !self.is_infinite_or()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_infinite_nand(self) -> bool {
         !self.is_infinite_and()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_infinite_xnor(self) -> bool {
         self.x.is_infinite() == self.y.is_infinite()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_nan(self) -> [bool; 2] {
         [
             self.x.is_nan(),
@@ -701,44 +738,44 @@ impl Pos {
         ]
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_nan_or(self) -> bool {
         self.x.is_nan() || self.y.is_nan()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_nan_and(self) -> bool {
         self.x.is_nan() && self.y.is_nan()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_nan_xor(self) -> bool {
         self.x.is_nan() ^ self.y.is_nan()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_nan_nor(self) -> bool {
         !self.is_nan_or()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_nan_nand(self) -> bool {
         !self.is_nan_and()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_nan_xnor(self) -> bool {
         self.x.is_nan() == self.y.is_nan()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_normal(self) -> [bool; 2] {
         [
             self.x.is_normal(),
@@ -746,43 +783,44 @@ impl Pos {
         ]
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_normal_or(self) -> bool {
         self.x.is_normal() || self.y.is_normal()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_normal_and(self) -> bool {
         self.x.is_normal() && self.y.is_normal()
     }
 
+    #[inline]
     #[must_use]
     pub const fn is_normal_xor(self) -> bool {
         self.x.is_normal() ^ self.y.is_normal()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_normal_nor(self) -> bool {
         !self.is_normal_or()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_normal_nand(self) -> bool {
         !self.is_normal_and()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_normal_xnor(self) -> bool {
         self.x.is_normal() == self.y.is_normal()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_sign_negative(self) -> [bool; 2] {
         [
             self.x.is_sign_negative(),
@@ -790,44 +828,44 @@ impl Pos {
         ]
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_sign_negative_or(self) -> bool {
         self.x.is_sign_negative() || self.y.is_sign_negative()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_sign_negative_and(self) -> bool {
         self.x.is_sign_negative() && self.y.is_sign_negative()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_sign_negative_xor(self) -> bool {
         self.x.is_sign_negative() ^ self.y.is_sign_negative()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_sign_negative_nor(self) -> bool {
         !self.is_sign_negative_or()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_sign_negative_nand(self) -> bool {
         !self.is_sign_negative_and()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_sign_negative_xnor(self) -> bool {
         self.x.is_sign_negative() == self.y.is_sign_negative()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_sign_positive(self) -> [bool; 2] {
         [
             self.x.is_sign_positive(),
@@ -835,44 +873,44 @@ impl Pos {
         ]
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_sign_positive_or(self) -> bool {
         self.x.is_sign_positive() || self.y.is_sign_positive()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_sign_positive_and(self) -> bool {
         self.x.is_sign_positive() && self.y.is_sign_positive()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_sign_positive_xor(self) -> bool {
         self.x.is_sign_positive() ^ self.y.is_sign_positive()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_sign_positive_nor(self) -> bool {
         !self.is_sign_positive_or()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_sign_positive_nand(self) -> bool {
         !self.is_sign_positive_and()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_sign_positive_xnor(self) -> bool {
         self.x.is_sign_positive() == self.y.is_sign_positive()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_subnormal(self) -> [bool; 2] {
         [
             self.x.is_subnormal(),
@@ -880,44 +918,44 @@ impl Pos {
         ]
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_subnormal_or(self) -> bool {
         self.x.is_subnormal() || self.y.is_subnormal()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_subnormal_and(self) -> bool {
         self.x.is_subnormal() && self.y.is_subnormal()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_subnormal_xor(self) -> bool {
         self.x.is_subnormal() ^ self.y.is_subnormal()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_subnormal_nor(self) -> bool {
         !self.is_subnormal_or()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_subnormal_nand(self) -> bool {
         !self.is_subnormal_and()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_subnormal_xnor(self) -> bool {
         self.x.is_subnormal() == self.y.is_subnormal()
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn trunc(self) -> Self {
         Self::new(
             self.x.trunc(),
@@ -926,6 +964,7 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub const fn lerp(self, other: Self, t: f32) -> Self {
         Self::new(
             lerp(self.x, other.x, t),
@@ -934,6 +973,7 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub const fn mid_point(self, other: Self) -> Self {
         Self::new(
             self.x.midpoint(other.x),
@@ -942,11 +982,14 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub const fn clamped_lerp(self, other: Self, t: f32) -> Self {
         self.lerp(other, t.clamp(0.0, 1.0))
     }
 
     #[inline]
+    #[must_use]
+    #[cfg_attr(debug_assertions, track_caller)]
     pub const fn clamp(self, min: Pos, max: Pos) -> Self {
         debug_assert!(min.le(max));
         Self::new(
@@ -956,6 +999,7 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub const fn clamp_both(self, min: f32, max: f32) -> Self {
         Self::new(
             self.x.clamp(min, max),
@@ -964,12 +1008,13 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub const fn clamp_uv(self) -> Self {
         Self::clamp_both(self, 0.0, 1.0)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn wrap_uv(self) -> Self {
         Self::new(
             self.x.rem_euclid(1.0),
@@ -978,6 +1023,7 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub fn clamp_length(self, min: f32, max: f32) -> Self {
         let length = self.length();
         if length >= min && length <= max {
@@ -989,6 +1035,7 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub fn clamp_length_min(self, min: f32) -> Self {
         let length = self.length();
         if length >= min {
@@ -1000,6 +1047,7 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub fn clamp_length_max(self, max: f32) -> Self {
         let length = self.length();
         if length <= max {
@@ -1011,40 +1059,44 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub const fn cross(self, other: Self) -> f32 {
         self.x * other.y - self.y * other.x
     }
 
     #[inline]
+    #[must_use]
     pub const fn dot(self, other: Self) -> f32 {
         self.x * other.x + self.y * other.y
     }
 
     #[inline]
+    #[must_use]
     pub fn normalized(self) -> Self {
         let length = self.length();
         Self::new(self.x / length, self.y / length)
     }
 
     #[inline]
+    #[must_use]
     pub fn fract(self) -> Self {
         Self::new(self.x.fract(), self.y.fract())
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn map<R, F: FnOnce(f32, f32) -> R>(self, map: F) -> R {
         map(self.x, self.y)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn map_xy<X: FnOnce(f32) -> f32, Y: FnOnce(f32) -> f32>(self, x: X, y: Y) -> Self {
         Self::new(x(self.x), y(self.y))
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn map_xy_each<F: Fn(f32) -> f32>(self, f: F) -> Self {
         Self::new(f(self.x), f(self.y))
     }
@@ -1053,35 +1105,41 @@ impl Pos {
 
     /// Checks that `self.x < other.x` and `self.y < other.y`.
     #[inline]
+    #[must_use]
     pub const fn lt(self, other: Pos) -> bool {
         self.x < other.x && self.y < other.y
     }
 
     /// Checks that `self.x <= other.x` and `self.y <= other.y`.
     #[inline]
+    #[must_use]
     pub const fn le(self, other: Pos) -> bool {
         self.x <= other.x && self.y <= other.y
     }
 
     /// Checks that `self.x == other.x` and `self.y == other.y`.
     #[inline]
+    #[must_use]
     pub const fn eq(self, other: Pos) -> bool {
         self.x == other.x && self.y == other.y
     }
 
     /// Checks that `self.x >= other.x` and `self.y >= other.y`.
     #[inline]
+    #[must_use]
     pub const fn ge(self, other: Pos) -> bool {
         self.x >= other.x && self.y >= other.y
     }
 
     /// Checks that `self.x > other.x` and `self.y > other.y`.
     #[inline]
+    #[must_use]
     pub const fn gt(self, other: Pos) -> bool {
         self.x > other.x && self.y > other.y
     }
 
     #[inline]
+    #[must_use]
     pub const fn dims(self) -> Dims {
         unsafe {
             std::mem::transmute(self)
@@ -1089,6 +1147,7 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub const fn from_dims(dims: Dims) -> Self {
         unsafe {
             std::mem::transmute(dims)
@@ -1096,12 +1155,13 @@ impl Pos {
     }
 
     #[inline]
+    #[must_use]
     pub fn test<P: FnOnce(f32, f32) -> bool>(self, pred: P) -> bool {
         pred(self.x, self.y)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn to_be_bytes(self) -> [u8; 8] {
         unsafe {
             std::mem::transmute([
@@ -1111,8 +1171,8 @@ impl Pos {
         }
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn to_le_bytes(self) -> [u8; 8] {
         unsafe {
             std::mem::transmute([
@@ -1122,8 +1182,8 @@ impl Pos {
         }
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn to_ne_bytes(self) -> [u8; 8] {
         unsafe {
             std::mem::transmute([
@@ -1133,8 +1193,8 @@ impl Pos {
         }
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn to_bits(self) -> [u32; 2] {
         [
             self.x.to_bits(),
@@ -1142,8 +1202,8 @@ impl Pos {
         ]
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn cardinal(self) -> Cardinal {
         let theta = self.angle();
         let octant = ((normalize_angle(theta + FRAC_PI_8) / FRAC_PI_4).floor() as u8) & 0b111;
@@ -1152,8 +1212,8 @@ impl Pos {
         }
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn axial(self) -> Axial {
         let theta = self.angle();
         let quadrant = ((normalize_angle(theta + FRAC_PI_4) / FRAC_PI_2).floor() as u8) & 0b11;
