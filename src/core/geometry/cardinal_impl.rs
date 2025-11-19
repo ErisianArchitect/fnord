@@ -49,8 +49,8 @@ impl Cardinal {
     ];
 
     /// The opposite direction.
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn antipode(self) -> Self {
         match self {
             Cardinal::E => Cardinal::W,
@@ -64,8 +64,8 @@ impl Cardinal {
         }
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn anchor(self) -> Anchor {
         match self {
             Cardinal::E => Anchor::RightCenter,
@@ -79,8 +79,8 @@ impl Cardinal {
         }
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn text(self) -> &'static str {
         match self {
             Cardinal::E => "East",
@@ -94,62 +94,62 @@ impl Cardinal {
         }
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_northward(self) -> bool {
         matches!(self, Cardinal::Nw | Cardinal::N | Cardinal::Ne)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_eastward(self) -> bool {
         matches!(self, Cardinal::Ne | Cardinal::E | Cardinal::Se)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_southward(self) -> bool {
         matches!(self, Cardinal::Se | Cardinal::S | Cardinal::Sw)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_westward(self) -> bool {
         matches!(self, Cardinal::Sw | Cardinal::W | Cardinal::Nw)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_northwestward(self) -> bool {
         matches!(self, Cardinal::Nw | Cardinal::N | Cardinal::W)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_northeastward(self) -> bool {
         matches!(self, Cardinal::N | Cardinal::Ne | Cardinal::E)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_southeastward(self) -> bool {
         matches!(self, Cardinal::E | Cardinal::Se | Cardinal::S)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_southwestward(self) -> bool {
         matches!(self, Cardinal::S | Cardinal::Sw | Cardinal::W)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_primary(self) -> bool {
         matches!(self, Cardinal::N | Cardinal::E | Cardinal::S | Cardinal::W)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_secondary(self) -> bool {
         matches!(self, Cardinal::Nw | Cardinal::Ne | Cardinal::Se | Cardinal::Sw)
     }
@@ -221,8 +221,8 @@ impl PrimaryCardinal {
     ];
 
     /// Returns the opposite direction.
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn antipode(self) -> Self {
         match self {
             PrimaryCardinal::East => Self::West,
@@ -233,47 +233,47 @@ impl PrimaryCardinal {
     }
 
     /// Determines if the direction is either North or South.
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_longitudinal(self) -> bool {
         matches!(self, Self::North | Self::South)
     }
 
     /// Determines if the direction is either East or West.
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_lateral(self) -> bool {
         matches!(self, Self::East | Self::West)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_north_or_west(self) -> bool {
         matches!(self, Self::North | Self::West)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_north_or_east(self) -> bool {
         matches!(self, Self::North | Self::East)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_south_or_east(self) -> bool {
         matches!(self, Self::East | Self::South)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_south_or_west(self) -> bool {
         matches!(self, Self::South | Self::West)
     }
 }
 
 impl Intercardinal {
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn antipode(self) -> Self {
         match self {
             Intercardinal::Ne => Self::Sw,
@@ -283,26 +283,26 @@ impl Intercardinal {
         }
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_northward(self) -> bool {
         matches!(self, Self::Nw | Self::Ne)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_eastward(self) -> bool {
         matches!(self, Self::Ne | Self::Se)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_southward(self) -> bool {
         matches!(self, Self::Se | Self::Sw)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn is_westward(self) -> bool {
         matches!(self, Self::Nw | Self::Sw)
     }
