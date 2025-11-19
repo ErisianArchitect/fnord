@@ -236,7 +236,7 @@ impl PrimaryCardinal {
     #[must_use]
     #[inline]
     pub const fn is_longitudinal(self) -> bool {
-        matches!(self, Self::North | Self::West)
+        matches!(self, Self::North | Self::South)
     }
 
     /// Determines if the direction is either East or West.
