@@ -16,6 +16,8 @@ pub struct NineSlice {
 }
 
 impl NineSlice {
+    #[inline]
+    #[must_use]
     pub const fn from_rect(rect: Rect, placement: Placement, size: f32) -> Self {
         Self {
             left_top: rect.handle_rect(Anchor::LeftTop, placement, size),

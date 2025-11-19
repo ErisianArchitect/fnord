@@ -37,6 +37,7 @@ impl Padding {
     pub const S100: Self = Padding::same(100.0);
 
     #[inline]
+    #[must_use]
     pub const fn new(left: f32, top: f32, right: f32, bottom: f32) -> Self {
         Self {
             left, top,
@@ -45,6 +46,7 @@ impl Padding {
     }
 
     #[inline]
+    #[must_use]
     pub const fn same(all: f32) -> Self {
         Self {
             left: all,
@@ -55,6 +57,7 @@ impl Padding {
     }
 
     #[inline]
+    #[must_use]
     pub const fn symmetric(x: f32, y: f32) -> Self {
         Self {
             left: x,
@@ -65,16 +68,19 @@ impl Padding {
     }
 
     #[inline]
+    #[must_use]
     pub const fn x(self) -> f32 {
         self.left + self.right
     }
 
     #[inline]
+    #[must_use]
     pub const fn y(self) -> f32 {
         self.top + self.bottom
     }
 
     #[inline]
+    #[must_use]
     pub const fn add_padding(self, rhs: Padding) -> Self {
         Self {
             left: self.left + rhs.left,
@@ -85,6 +91,7 @@ impl Padding {
     }
 
     #[inline]
+    #[must_use]
     pub const fn sub_padding(self, rhs: Padding) -> Self {
         Self {
             left: self.left - rhs.left,
@@ -95,6 +102,7 @@ impl Padding {
     }
 
     #[inline]
+    #[must_use]
     pub const fn to_margin(self) -> Margin {
         unsafe {
             std::mem::transmute(self)
@@ -102,6 +110,7 @@ impl Padding {
     }
 
     #[inline]
+    #[must_use]
     pub const fn from_margin(margin: Margin) -> Self {
         unsafe {
             std::mem::transmute(margin)
@@ -109,6 +118,7 @@ impl Padding {
     }
 
     #[inline]
+    #[must_use]
     pub const fn lerp(self, other: Self, t: f32) -> Self {
         Self {
             left: lerp(self.left, other.left, t),
@@ -119,11 +129,13 @@ impl Padding {
     }
 
     #[inline]
+    #[must_use]
     pub const fn clamped_lerp(self, other: Self, t: f32) -> Self {
         self.lerp(other, t.clamp(0.0, 1.0))
     }
 
     #[inline]
+    #[must_use]
     pub const fn total_size(self) -> Size {
         Size::new(self.x(), self.y())
     }
