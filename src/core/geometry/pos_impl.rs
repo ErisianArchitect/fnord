@@ -25,8 +25,8 @@ pub struct Pos {
     pub y: f32,
 }
 
-#[must_use]
 #[inline]
+#[must_use]
 pub const fn pos(x: f32, y: f32) -> Pos {
     Pos { x, y }
 }
