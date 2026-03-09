@@ -2456,7 +2456,7 @@ impl Rect {
         let cell_min = cell_min_coord.mul_dims(cell_width, cell_height).add(self.min);
         let cell = Rect::from_min_size(cell_min, Size::new(cell_width, cell_height));
         if cell.contains_rect(rect) {
-            let cell_coord = (cell_min.x as u32, cell_min.y as u32);
+            let cell_coord = (cell_min_coord.x as u32, cell_min_coord.y as u32);
             Some((cell_coord, cell))
         } else {
             None
